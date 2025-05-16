@@ -95,6 +95,5 @@
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-out; /* Reduced duration from 0.5s to 0.3s */
+  animation: fadeIn 0.1s ease-out; /* Reduced duration from 0.3s to 0.1s */
 }
-

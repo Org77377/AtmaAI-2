@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Image from 'next/image';
+// Image import removed as no Image components are used on this page anymore
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -25,7 +25,7 @@ export default function HomePage() {
     if (storedName) {
       setUserName(storedName);
     } else {
-      setUserName(null); 
+      setUserName(null);
     }
     setIsLoadingName(false);
   }, []);
@@ -40,8 +40,8 @@ export default function HomePage() {
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
-        router.refresh(); // Refresh to ensure content updates if any logic depends on this state
-      }, 3000); 
+        router.refresh();
+      }, 3000);
     }
   };
 
@@ -168,15 +168,8 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Image
-              src="https://placehold.co/480x270.png"
-              alt="Friendly Chat illustration"
-              width={480}
-              height={270}
-              className="rounded-md mb-4 object-cover w-full h-48"
-              data-ai-hint="support conversation"
-            />
-            <Button asChild className="w-full">
+            {/* Image component previously here has been removed */}
+            <Button asChild className="w-full mt-4">
               <Link href="/guidance">Let's Chat <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardContent>
@@ -193,15 +186,8 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <Image
-              src="https://placehold.co/400x300.png"
-              alt="Curated Stories illustration"
-              width={400}
-              height={300}
-              className="rounded-md mb-4 object-cover w-full h-48"
-              data-ai-hint="inspiration stories"
-            />
-            <Button asChild className="w-full">
+            {/* Image component previously here has been removed */}
+            <Button asChild className="w-full mt-4">
               <Link href="/stories">Explore Stories <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardContent>
