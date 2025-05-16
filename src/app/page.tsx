@@ -38,7 +38,7 @@ export default function HomePage() {
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
-      }, 1500);
+      }, 3000); // Changed from 1500 to 3000
     }
   };
 
@@ -216,3 +216,4 @@ export default function HomePage() {
     </div>
   );
 }
+
