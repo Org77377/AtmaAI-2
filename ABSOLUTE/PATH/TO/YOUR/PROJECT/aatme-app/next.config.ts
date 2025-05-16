@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'i.ibb.co',
+        hostname: 'i.ibb.co', // Corrected to the actual image host
         port: '',
         pathname: '/**',
       },
@@ -28,5 +28,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-    
