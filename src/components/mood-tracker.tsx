@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const moods = [
+const moodOptions = [ // Renamed to moodOptions to avoid conflict
   { value: 'joyful', label: 'Joyful', icon: <Smile className="w-6 h-6 text-green-500" /> },
   { value: 'calm', label: 'Calm', icon: <TrendingUp className="w-6 h-6 text-blue-500" /> },
   { value: 'neutral', label: 'Neutral', icon: <Meh className="w-6 h-6 text-gray-500" /> },
@@ -18,7 +18,14 @@ const moods = [
   { value: 'sad', label: 'Sad', icon: <Frown className="w-6 h-6 text-red-500" /> },
 ];
 
-export default function MoodTracker() {
+interface MoodTrackerProps {
+  dictionary: {
+    mood_tracker_title: string;
+    mood_tracker_description: string;
+  }
+}
+
+export default function MoodTracker({ dictionary }: MoodTrackerProps) {
   const [selectedMood, setSelectedMood] = useState<string | undefined>(undefined);
   const [submittedMood, setSubmittedMood] = useState<string | undefined>(undefined);
   const { toast } = useToast();
@@ -34,22 +41,21 @@ export default function MoodTracker() {
       return;
     }
     
-    setSubmittedMood(selectedMood); // For visual feedback
+    setSubmittedMood(selectedMood); 
     toast({
       title: "Mood Shared!",
-      description: `Thanks for sharing that you're feeling ${moods.find(m => m.value === selectedMood)?.label || selectedMood}.`,
+      description: `Thanks for sharing that you're feeling ${moodOptions.find(m => m.value === selectedMood)?.label || selectedMood}.`,
     });
-    // Reset selectedMood for next input, but keep submittedMood for brief visual feedback
     setSelectedMood(undefined); 
-    setTimeout(() => setSubmittedMood(undefined), 1000); // Clear feedback after 1 second
+    setTimeout(() => setSubmittedMood(undefined), 1500); 
   };
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">How are you feeling today?</CardTitle>
+        <CardTitle className="text-2xl text-center">{dictionary.mood_tracker_title}</CardTitle>
         <CardDescription className="text-center">
-          Sharing your mood can help you understand yourself better.
+          {dictionary.mood_tracker_description}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -59,7 +65,7 @@ export default function MoodTracker() {
             onValueChange={setSelectedMood}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"
           >
-            {moods.map((mood) => (
+            {moodOptions.map((mood) => (
               <Label
                 key={mood.value}
                 htmlFor={`mood-${mood.value}`}
@@ -68,7 +74,7 @@ export default function MoodTracker() {
                   selectedMood === mood.value 
                     ? "bg-primary/20 border-primary ring-2 ring-primary scale-105" 
                     : "hover:bg-accent hover:border-accent-foreground/50",
-                  submittedMood === mood.value && "animate-pulse border-2 border-green-500 bg-green-500/20" // Feedback animation
+                  submittedMood === mood.value && "animate-pulse border-2 border-green-500 bg-green-500/20" 
                 )}
               >
                 <RadioGroupItem value={mood.value} id={`mood-${mood.value}`} className="sr-only" />

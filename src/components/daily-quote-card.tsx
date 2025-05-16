@@ -3,24 +3,29 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { quotes as allQuotes, type Quote } from '@/lib/quotes';
+import { quotes, type Quote } from '@/lib/quotes';
 import { Button } from '@/components/ui/button';
-import { Zap, Share2, BookmarkCheck, BookmarkPlus } from 'lucide-react';
+import { Share2, BookmarkCheck, BookmarkPlus, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export default function DailyQuoteCard() {
+interface DailyQuoteCardProps {
+  dictionary: { // Expect a dictionary prop
+    daily_quote_title: string;
+  }
+}
+
+export default function DailyQuoteCard({ dictionary }: DailyQuoteCardProps) {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [savedQuotes, setSavedQuotes] = useState<string[]>([]);
   const { toast } = useToast();
 
   const getRandomQuote = useCallback(() => {
-    // Ensure quotes array is not empty to prevent errors
-    if (allQuotes.length === 0) {
+    if (quotes.length === 0) {
         setQuote({ id: 'system-no-quote', text: "No quotes available at the moment.", author: "System" });
         return;
     }
-    const randomIndex = Math.floor(Math.random() * allQuotes.length);
-    setQuote(allQuotes[randomIndex]);
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    setQuote(quotes[randomIndex]);
   }, []);
 
   useEffect(() => {
@@ -32,14 +37,13 @@ export default function DailyQuoteCard() {
         if (Array.isArray(parsedQuotes)) {
           setSavedQuotes(parsedQuotes);
         } else {
-          // If stored data is not an array, clear it or set to empty
           setSavedQuotes([]);
           localStorage.removeItem('aatmAI-saved-quotes'); 
         }
       } catch (error) {
         console.error("Failed to parse saved quotes from localStorage:", error);
         setSavedQuotes([]);
-        localStorage.removeItem('aatmAI-saved-quotes'); // Clear potentially corrupt data
+        localStorage.removeItem('aatmAI-saved-quotes'); 
       }
     }
   }, [getRandomQuote]);
@@ -49,13 +53,13 @@ export default function DailyQuoteCard() {
     const shareData = {
       title: 'AatmAI - Daily Quote',
       text: `"${quote.text}" - ${quote.author}`,
-      url: window.location.href, // Or a more specific URL if applicable
+      url: window.location.href, 
     };
     try {
-      if (navigator.share && navigator.canShare(shareData)) { // Check if navigator.canShare is available
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
         toast({ title: "Quote Shared!", description: "The quote has been shared." });
-      } else if (navigator.clipboard) { // Fallback to clipboard if share is not fully supported
+      } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
         toast({ title: "Quote Copied!", description: "The quote has been copied to your clipboard." });
       } else {
@@ -63,7 +67,6 @@ export default function DailyQuoteCard() {
       }
     } catch (err) {
       console.error("Share failed:", err);
-      // Attempt clipboard copy as a last resort if share() promise rejects
       try {
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
@@ -78,7 +81,7 @@ export default function DailyQuoteCard() {
   };
 
   const handleSaveQuote = () => {
-    if (!quote || !quote.id) return; // Ensure quote and quote.id exist
+    if (!quote || !quote.id) return; 
     let updatedSavedQuotes = [...savedQuotes];
     if (savedQuotes.includes(quote.id)) {
       updatedSavedQuotes = updatedSavedQuotes.filter(id => id !== quote.id);
@@ -107,7 +110,7 @@ export default function DailyQuoteCard() {
     <Card className="w-full max-w-2xl mx-auto shadow-xl border-primary/30 border-2 bg-card">
       <CardHeader className="pt-6 pb-2 flex flex-row items-center justify-center space-x-2">
         <Zap className="w-6 h-6 text-accent" />
-        <h3 className="text-xl font-semibold text-primary">A Moment of Reflection</h3>
+        <h3 className="text-xl font-semibold text-primary">{dictionary.daily_quote_title}</h3>
       </CardHeader>
       <CardContent className="p-6 pt-2 text-center">
         <blockquote className="text-xl italic font-medium text-foreground md:text-2xl">
@@ -120,8 +123,7 @@ export default function DailyQuoteCard() {
           <Button variant="outline" size="icon" onClick={handleShare} aria-label="Share quote">
             <Share2 className="h-5 w-5" />
           </Button>
-          {/* Conditionally render save button only if the quote has a non-system ID or if you want to allow saving system messages */}
-          {quote.id && ( 
+          {quote.id && quote.id !== 'system-no-quote' && ( 
             <Button variant="outline" size="icon" onClick={handleSaveQuote} aria-label={isQuoteSaved ? "Unsave quote" : "Save quote"}>
               {isQuoteSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <BookmarkPlus className="h-5 w-5" />}
             </Button>

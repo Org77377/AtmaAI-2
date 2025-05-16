@@ -1,0 +1,42 @@
+
+{
+  "header": {
+    "home": "Home",
+    "chat": "Chat",
+    "stories": "Stories",
+    "about_us": "About Us",
+    "saved_quotes": "Saved Quotes",
+    "tagline": "your AI therapist",
+    "peace_out_reset": "Peace Out & Reset"
+  },
+  "homePage": {
+    "welcome_to_aatmAI": "Welcome to AatmAI",
+    "greeting_morning": "Good Morning",
+    "greeting_afternoon": "Good Afternoon",
+    "greeting_evening": "Good Evening",
+    "hero_subtitle": "Your compassionate companion for navigating life's challenges. We offer friendly advice, inspiring stories, and a space to reflect.",
+    "chat_now_button": "Chat Now with AatmAI",
+    "what_aatmAI_can_do": "What AatmAI Can Do For You",
+    "feature_1": "Offer a friendly ear and a space to share your thoughts.",
+    "feature_2": "Provide AI-driven insights for career, financial, and relationship concerns.",
+    "feature_3": "Share inspiring real-life stories tailored to your situation.",
+    "feature_4": "Help you reflect and find motivation with daily quotes.",
+    "feature_5": "Respect your privacy: Your interactions are anonymous and no personal data is stored.",
+    "mood_tracker_title": "How are you feeling today?",
+    "mood_tracker_description": "Sharing your mood can help you understand yourself better.",
+    "friendly_chat_card_title": "Friendly Chat",
+    "friendly_chat_card_description": "Receive AI-driven advice tailored to your career, financial, and relationship concerns, with cultural sensitivity for Indian users.",
+    "friendly_chat_card_button": "Let's Chat",
+    "curated_stories_card_title": "Curated Life Stories",
+    "curated_stories_card_description": "Discover inspiring real-life stories curated by AI to match your profile and challenges, offering motivation and new perspectives.",
+    "curated_stories_card_button": "Explore Stories",
+    "learn_more_about_aatmAI": "Learn More About AatmAI's Story",
+    "daily_quote_title": "A Moment of Reflection"
+  },
+  "languageSwitcher": {
+    "change_language": "Change Language",
+    "english": "English",
+    "hindi": "Hindi",
+    "kannada": "Kannada"
+  }
+}
