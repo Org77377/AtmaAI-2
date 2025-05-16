@@ -168,15 +168,7 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Image
-              src="https://i.ibb.co/VWDwN09/0pwsg-KK4.png"
-              alt="Friendly Chat illustration"
-              width={480}
-              height={270}
-              className="rounded-md mb-4 object-cover w-full h-48"
-              data-ai-hint="support conversation"
-            />
-            <Button asChild className="w-full">
+            <Button asChild className="w-full mt-4">
               <Link href="/guidance">Let's Chat <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardContent>
@@ -193,15 +185,7 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <Image
-              src="https://i.ibb.co/RzPNjB0/n-Mt-N4j-X1.png"
-              alt="Curated Stories illustration"
-              width={400}
-              height={300}
-              className="rounded-md mb-4 object-cover w-full h-48"
-              data-ai-hint="inspiration stories"
-            />
-            <Button asChild className="w-full">
+            <Button asChild className="w-full mt-4">
               <Link href="/stories">Explore Stories <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardContent>
