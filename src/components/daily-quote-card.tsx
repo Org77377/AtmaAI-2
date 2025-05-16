@@ -3,20 +3,21 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { quotes as allQuotes, type Quote } from '@/lib/quotes'; // Correctly import Quote type
+import { quotes as allQuotes, type Quote } from '@/lib/quotes';
 import { Button } from '@/components/ui/button';
 import { Zap, Share2, BookmarkCheck, BookmarkPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function DailyQuoteCard() {
-  const [quote, setQuote] = useState<Quote | null>(null); // Use Quote type
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [savedQuotes, setSavedQuotes] = useState<string[]>([]);
   const { toast } = useToast();
 
   const getRandomQuote = useCallback(() => {
+    // Ensure quotes array is not empty to prevent errors
     if (allQuotes.length === 0) {
-      setQuote({ id: 'system-no-quote', text: "No quotes available at the moment.", author: "System" });
-      return;
+        setQuote({ id: 'system-no-quote', text: "No quotes available at the moment.", author: "System" });
+        return;
     }
     const randomIndex = Math.floor(Math.random() * allQuotes.length);
     setQuote(allQuotes[randomIndex]);
@@ -31,13 +32,14 @@ export default function DailyQuoteCard() {
         if (Array.isArray(parsedQuotes)) {
           setSavedQuotes(parsedQuotes);
         } else {
+          // If stored data is not an array, clear it or set to empty
           setSavedQuotes([]);
-          localStorage.removeItem('aatmAI-saved-quotes'); // Clean up non-array data
+          localStorage.removeItem('aatmAI-saved-quotes'); 
         }
       } catch (error) {
         console.error("Failed to parse saved quotes from localStorage:", error);
         setSavedQuotes([]);
-        localStorage.removeItem('aatmAI-saved-quotes'); 
+        localStorage.removeItem('aatmAI-saved-quotes'); // Clear potentially corrupt data
       }
     }
   }, [getRandomQuote]);
@@ -47,21 +49,28 @@ export default function DailyQuoteCard() {
     const shareData = {
       title: 'AatmAI - Daily Quote',
       text: `"${quote.text}" - ${quote.author}`,
-      url: window.location.href,
+      url: window.location.href, // Or a more specific URL if applicable
     };
     try {
-      if (navigator.share && navigator.canShare(shareData)) {
+      if (navigator.share && navigator.canShare(shareData)) { // Check if navigator.canShare is available
         await navigator.share(shareData);
         toast({ title: "Quote Shared!", description: "The quote has been shared." });
-      } else {
+      } else if (navigator.clipboard) { // Fallback to clipboard if share is not fully supported
         await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
         toast({ title: "Quote Copied!", description: "The quote has been copied to your clipboard." });
+      } else {
+        toast({ title: "Failed to Share", description: "Sharing not supported on this browser.", variant: "destructive" });
       }
     } catch (err) {
       console.error("Share failed:", err);
+      // Attempt clipboard copy as a last resort if share() promise rejects
       try {
-        await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
-        toast({ title: "Quote Copied!", description: "Sharing failed, quote copied to clipboard." });
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
+          toast({ title: "Quote Copied!", description: "Sharing failed, quote copied to clipboard." });
+        } else {
+          toast({ title: "Failed to Share or Copy", description: "Could not share or copy the quote.", variant: "destructive" });
+        }
       } catch (copyErr) {
         toast({ title: "Failed to Share or Copy", description: "Could not share or copy the quote.", variant: "destructive" });
       }
@@ -111,7 +120,8 @@ export default function DailyQuoteCard() {
           <Button variant="outline" size="icon" onClick={handleShare} aria-label="Share quote">
             <Share2 className="h-5 w-5" />
           </Button>
-          {quote.id && ( // Conditionally render save button if quote.id exists
+          {/* Conditionally render save button only if the quote has a non-system ID or if you want to allow saving system messages */}
+          {quote.id && ( 
             <Button variant="outline" size="icon" onClick={handleSaveQuote} aria-label={isQuoteSaved ? "Unsave quote" : "Save quote"}>
               {isQuoteSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <BookmarkPlus className="h-5 w-5" />}
             </Button>
