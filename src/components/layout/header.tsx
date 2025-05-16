@@ -3,13 +3,13 @@
 
 import Link from 'next/link';
 import { Sparkles, LogOut, Menu } from 'lucide-react';
-import { MainNav, navItems } from '@/components/layout/main-nav'; // Assuming navItems is exported from MainNav or defined here
+import { MainNav, navItems } from '@/components/layout/main-nav'; 
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from '@/components/ui/sheet'; // Added SheetTitle
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
@@ -26,20 +26,11 @@ export default function Header() {
         title: "See Ya!",
         description: "You've been logged out. Enter a new name to start fresh.",
       });
-      setIsMobileMenuOpen(false); // Close menu on logout
-      // window.location.href = '/'; // This causes a hard refresh, router.push is usually preferred for SPA feel
+      setIsMobileMenuOpen(false); 
       router.push('/');
-      router.refresh(); // Ensures the page re-evaluates localStorage
+      router.refresh(); 
     }
   };
-
-  // If navItems is not exported from MainNav, define it here:
-  // const navItems = [
-  //   { href: "/", label: "Home" },
-  //   { href: "/guidance", label: "Chat" },
-  //   { href: "/stories", label: "Stories" },
-  //   { href: "/about", label: "About Us" },
-  // ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -75,10 +66,12 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] p-0">
               <SheetHeader className="border-b p-4">
-                <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  <span className="font-bold text-lg">Aatme</span>
-                </Link>
+                <SheetTitle>
+                  <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    <span className="font-bold text-lg">Aatme</span>
+                  </Link>
+                </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
                 {navItems.map((item) => (
