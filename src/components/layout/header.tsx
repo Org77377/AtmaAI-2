@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react';
-import { MainNav, navItems } from '@/components/layout/main-nav';
+import { MainNav, navItems, type NavItemType } from '@/components/layout/main-nav'; // Import NavItemType
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useRouter, usePathname } from 'next/navigation';
@@ -31,8 +31,8 @@ export default function Header() {
     }
   };
 
-  const allNavItems = [
-    ...navItems,
+  const allNavItems: NavItemType[] = [ // Use NavItemType for allNavItems
+    ...navItems, // These now conform to NavItemType (icon will be undefined)
     { href: "/quotes/saved", label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> }
   ];
 
@@ -52,16 +52,7 @@ export default function Header() {
          <MainNav />
         </div>
 
-        <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto">
-          <ThemeToggle />
-          <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 sm:px-3">
-            <LogOut className="mr-0 sm:mr-1.5 h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Peace Out & Reset</span>
-            <span className="sm:hidden">Reset</span>
-          </Button>
-        </div>
-
-        <div className="md:hidden flex flex-1 items-center justify-end space-x-2">
+        <div className="md:hidden flex flex-1 items-center justify-end space-x-1">
           <ThemeToggle />
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -83,7 +74,7 @@ export default function Header() {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
-                {allNavItems.map((item) => (
+                {allNavItems.map((item) => ( // item is now consistently NavItemType
                   <SheetClose asChild key={item.href}>
                      <Link
                        href={item.href}
@@ -111,6 +102,16 @@ export default function Header() {
             </SheetContent>
           </Sheet>
         </div>
+        
+        <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto">
+          <ThemeToggle />
+          <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 sm:px-3">
+            <LogOut className="mr-0 sm:mr-1.5 h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Peace Out & Reset</span>
+            <span className="sm:hidden">Reset</span>
+          </Button>
+        </div>
+
       </div>
     </header>
   );
