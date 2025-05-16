@@ -2,8 +2,8 @@
 "use client";
 
 import Link from 'next/link';
-import { Sparkles, LogOut, Menu } from 'lucide-react';
-import { MainNav, navItems } from '@/components/layout/main-nav'; 
+import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react'; // Added Bookmark
+import { MainNav, navItems } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useRouter, usePathname } from 'next/navigation';
@@ -26,20 +26,29 @@ export default function Header() {
         title: "See Ya!",
         description: "You've been logged out. Enter a new name to start fresh.",
       });
-      setIsMobileMenuOpen(false); 
-      router.replace('/'); 
-      router.refresh(); 
+      setIsMobileMenuOpen(false);
+      router.replace('/');
+      router.refresh();
     }
   };
+
+  const allNavItems = [
+    ...navItems,
+    { href: "/quotes/saved", label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> }
+  ];
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
-        <Link href="/" className="mr-4 md:mr-8 flex items-center space-x-2">
+        <Link href="/" className="mr-4 md:mr-8 flex items-baseline space-x-2">
           <Sparkles className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">Aatme</span>
+          <div>
+            <span className="font-bold text-lg">Aatme</span>
+            <span className="ml-1.5 text-xs text-muted-foreground">your AI therapist</span>
+          </div>
         </Link>
-        
+
         <div className="hidden md:flex md:flex-grow">
          <MainNav />
         </div>
@@ -65,23 +74,27 @@ export default function Header() {
             <SheetContent side="left" className="w-[280px] p-0">
               <SheetHeader className="border-b p-4">
                 <SheetTitle>
-                  <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/" className="flex items-baseline space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <Sparkles className="h-6 w-6 text-primary" />
-                    <span className="font-bold text-lg">Aatme</span>
+                     <div>
+                        <span className="font-bold text-lg">Aatme</span>
+                        <span className="ml-1.5 text-xs text-muted-foreground">your AI therapist</span>
+                    </div>
                   </Link>
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
-                {navItems.map((item) => (
+                {allNavItems.map((item) => (
                   <SheetClose asChild key={item.href}>
-                     <Link 
-                       href={item.href} 
+                     <Link
+                       href={item.href}
                        className={cn(
                          "block px-3 py-2 rounded-md text-base font-medium",
                          pathname === item.href ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                        )}
                        onClick={() => setIsMobileMenuOpen(false)}
                      >
+                       {item.icon ? <span className="inline-block align-middle mr-2">{item.icon}</span> : null}
                        {item.label}
                      </Link>
                   </SheetClose>

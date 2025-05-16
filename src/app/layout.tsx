@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Aatme',
-  description: 'Your personal guide for career, finance, and relationships with Aatme.',
+  title: 'Aatme - Your AI Therapist',
+  description: 'Aatme, your AI therapist: A personal guide for career, finance, and relationships.',
 };
 
 export default function RootLayout({

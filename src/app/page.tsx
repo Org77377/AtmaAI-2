@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+// Image import is removed as images are no longer used in this component directly
 
 export default function HomePage() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -25,11 +26,10 @@ export default function HomePage() {
     if (storedName) {
       setUserName(storedName);
     } else {
-      setUserName(null); // Ensure userName is null if not found
+      setUserName(null);
     }
     setIsLoadingName(false);
 
-    // Set time-based greeting
     const hour = new Date().getHours();
     if (hour < 12) {
       setGreeting("Good Morning");
@@ -51,7 +51,7 @@ export default function HomePage() {
       setTimeout(() => {
         setIsAppLoading(false);
         router.refresh();
-      }, 3000); // 3 second loading
+      }, 3000);
     }
   };
 
@@ -69,7 +69,8 @@ export default function HomePage() {
         <Card className="w-full max-w-md p-6 shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Welcome to Aatme!</CardTitle>
-            <CardDescription>Please enter your name to get started.</CardDescription>
+            <CardDescription>your AI therapist</CardDescription>
+            <CardDescription className="mt-2">Please enter your name to get started.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleNameSubmit} className="space-y-6">
@@ -119,9 +120,12 @@ export default function HomePage() {
         <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl md:text-6xl">
           {greeting}, {userName}!
         </h1>
-        <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-         Welcome to Aatme
-        </p>
+        <div className="mt-2">
+          <p className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
+           Welcome to Aatme
+          </p>
+          <p className="mt-1 text-md text-muted-foreground">your AI therapist</p>
+        </div>
         <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
           Your compassionate companion for navigating life's challenges. We offer friendly advice, inspiring stories, and a space to reflect.
         </p>
@@ -152,8 +156,8 @@ export default function HomePage() {
           <CardContent>
             <ul className="space-y-4">
               {appFeatures.map((feature, index) => (
-                <li 
-                  key={index} 
+                <li
+                  key={index}
                   className="flex items-start gap-4 p-3 bg-background rounded-lg border transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02] hover:border-primary/50"
                 >
                   <div className="flex-shrink-0 mt-1">{feature.icon}</div>
@@ -180,7 +184,7 @@ export default function HomePage() {
               Receive AI-driven advice tailored to your career, financial, and relationship concerns, with cultural sensitivity for Indian users.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6"> {/* Added pt-6 for spacing as image was removed */}
+          <CardContent className="pt-6">
             <Button asChild className="w-full mt-4">
               <Link href="/guidance">Let's Chat <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
@@ -197,7 +201,7 @@ export default function HomePage() {
               Discover inspiring real-life stories curated by AI to match your profile and challenges, offering motivation and new perspectives.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6"> {/* Added pt-6 for spacing as image was removed */}
+          <CardContent className="pt-6">
             <Button asChild className="w-full mt-4">
               <Link href="/stories">Explore Stories <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
