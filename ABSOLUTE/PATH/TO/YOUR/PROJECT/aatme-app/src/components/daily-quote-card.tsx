@@ -5,10 +5,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { quotes, type Quote } from '@/lib/quotes';
 import { Zap } from 'lucide-react';
-// Button import removed as it's no longer used directly here if no other buttons remain.
-// Keeping it for now as it's a general UI component, but if this was the ONLY button, we'd remove.
-// Actually, `Button` is not used at all now in this component. Let's remove it to be clean.
-// import { Button } from './ui/button'; // Removed as no buttons are left.
+// Button import removed as it's no longer used directly here.
 
 export default function DailyQuoteCard() {
   const [quote, setQuote] = useState<Quote | null>(null);
