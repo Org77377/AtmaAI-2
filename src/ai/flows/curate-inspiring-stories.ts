@@ -3,7 +3,7 @@
 'use server';
 
 /**
- * @fileOverview AI agent that curates inspiring real-life stories based on user profiles and challenges, with a focus on emotional comfort and resilience.
+ * @fileOverview AI agent that curates inspiring real-life stories based on user profiles and challenges, with a focus on emotional comfort, resilience, and variety.
  *
  * - curateInspiringStories - A function that curates and returns inspiring stories.
  * - CurateInspiringStoriesInput - The input type for the curateInspiringStories function.
@@ -52,7 +52,7 @@ const prompt = ai.definePrompt({
   Current Challenges: {{{currentChallenges}}}
 
   Based on the user's profile (if provided) and their current challenges, curate a list of 3-4 concise, inspiring real-life stories.
-  Each story should be a short paragraph that clearly summarizes the key points and the inspirational aspects.
+  Each story should be a short paragraph that clearly summarizes the key points and the inspirational aspects. Ensure the curated stories are distinct and offer varied perspectives on overcoming challenges.
   Focus sharply on stories that offer genuine emotional comfort, demonstrate resilience in the face of adversity, and instill a sense of hope. Avoid generic advice or overly simplistic narratives.
   If appropriate and aligned with the user's context, you can include stories that echo themes from philosophies like the Bhagavad Gita or similar wisdom traditions, focusing on universal values of strength, hope, perseverance, and finding meaning. Frame these in a general, non-denominational way that is broadly relatable.
   The stories should feel authentic and impactful.
