@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react'; // Added Bookmark
+import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react';
 import { MainNav, navItems } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -27,8 +27,7 @@ export default function Header() {
         description: "You've been logged out. Enter a new name to start fresh.",
       });
       setIsMobileMenuOpen(false);
-      router.replace('/');
-      router.refresh();
+      window.location.href = '/'; // Force full page reload to home
     }
   };
 

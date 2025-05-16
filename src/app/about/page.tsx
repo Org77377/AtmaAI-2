@@ -3,11 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Users, Mail, MapPin, Brain } from 'lucide-react';
 import Link from 'next/link';
-// Image import removed
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto py-8 animate-fadeIn">
+    <div className="max-w-3xl mx-auto py-8">
       <Card className="shadow-xl overflow-hidden">
         <CardHeader className="bg-primary/10 p-8 text-center">
           <div className="flex flex-col items-center gap-4">
@@ -21,7 +20,6 @@ export default function AboutPage() {
           </div>
         </CardHeader>
         <CardContent className="p-6 md:p-8 space-y-6">
-          {/* Image component removed from here */}
           <p className="text-lg text-foreground leading-relaxed">
             Aatme was born from the experiences of two enthusiasts who, like many, faced their own share of life's challenges. We realized the profound need for a supportive, non-judgmental space where individuals could find understanding and a fresh perspective.
           </p>

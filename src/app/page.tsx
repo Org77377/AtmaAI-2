@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-// Image import is removed as images are no longer used in this component directly
 
 export default function HomePage() {
   const [userName, setUserName] = useState<string | null>(null);
@@ -115,7 +114,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="space-y-12 animate-fadeIn">
+    <div className="space-y-12">
       <section className="text-center py-12 bg-card rounded-xl shadow-lg">
         <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl md:text-6xl">
           {greeting}, {userName}!
