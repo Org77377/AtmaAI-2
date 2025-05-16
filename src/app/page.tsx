@@ -72,7 +72,7 @@ export default function HomePage() {
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
-        router.refresh(); // Refresh to ensure layout components re-render if needed
+        router.refresh(); 
       }, 3000);
     }
   };
@@ -92,15 +92,15 @@ export default function HomePage() {
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Welcome to AatmAI!</CardTitle>
             <CardDescription>your AI therapist</CardDescription>
-            <div className="mt-3 text-center h-6"> {/* Container for animated text */}
+            <div className="mt-4 text-center h-10 flex items-center justify-center"> {/* Adjusted margin, height and added flex for centering */}
               <p 
                 key={currentCatchphraseIndex} 
-                className="text-muted-foreground animate-fadeIn text-sm"
+                className="text-primary animate-fadeIn text-xl font-medium" // Increased font size and changed color
               >
                 {animatedCatchphrases[currentCatchphraseIndex]}
               </p>
             </div>
-            <CardDescription className="mt-3">Please enter your name to get started.</CardDescription> {/* Adjusted margin */}
+            <CardDescription className="mt-4">Please enter your name to get started.</CardDescription> {/* Adjusted margin */}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleNameSubmit} className="space-y-6">
@@ -250,5 +250,4 @@ export default function HomePage() {
     </div>
   );
 }
-
     
