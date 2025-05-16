@@ -1,7 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { useEffect } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +28,7 @@ function SubmitButton() {
 }
 
 export default function PersonalizedGuidanceForm() {
-  const [state, formAction] = useFormState(handleGenerateGuidance, initialState);
+  const [state, formAction] = useActionState(handleGenerateGuidance, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

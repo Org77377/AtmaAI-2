@@ -1,7 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { useEffect } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +27,7 @@ function SubmitButton() {
 }
 
 export default function CuratedStoriesForm() {
-  const [state, formAction] = useFormState(handleCurateStories, initialState);
+  const [state, formAction] = useActionState(handleCurateStories, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
