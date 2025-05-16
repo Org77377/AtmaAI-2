@@ -12,6 +12,14 @@ import { Label } from '@/components/ui/label';
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+const animatedCatchphrases = [
+  "Your space to reflect.",
+  "Guidance for your journey.",
+  "A compassionate listener.",
+  "Find clarity and peace.",
+  "Insights for your well-being."
+];
+
 export default function HomePage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState<string>("");
@@ -19,6 +27,8 @@ export default function HomePage() {
   const [isAppLoading, setIsAppLoading] = useState<boolean>(false);
   const [greeting, setGreeting] = useState<string>("Welcome");
   const router = useRouter();
+
+  const [currentCatchphraseIndex, setCurrentCatchphraseIndex] = useState(0);
 
   useEffect(() => {
     const storedName = localStorage.getItem('userName');
@@ -38,6 +48,19 @@ export default function HomePage() {
       setGreeting("Good Evening");
     }
   }, []);
+
+  useEffect(() => {
+    // This effect is for the animated catchphrases on the name input screen
+    if (!userName && !isLoadingName) {
+      const intervalId = setInterval(() => {
+        setCurrentCatchphraseIndex((prevIndex) =>
+          (prevIndex + 1) % animatedCatchphrases.length
+        );
+      }, 3000); // Change phrase every 3 seconds
+
+      return () => clearInterval(intervalId); // Cleanup on component unmount or when userName is set
+    }
+  }, [userName, isLoadingName]);
 
   const handleNameSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -69,7 +92,15 @@ export default function HomePage() {
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Welcome to AatmAI!</CardTitle>
             <CardDescription>your AI therapist</CardDescription>
-            <CardDescription className="mt-2">Please enter your name to get started.</CardDescription>
+            <div className="mt-3 text-center h-6"> {/* Container for animated text */}
+              <p 
+                key={currentCatchphraseIndex} 
+                className="text-muted-foreground animate-fadeIn text-sm"
+              >
+                {animatedCatchphrases[currentCatchphraseIndex]}
+              </p>
+            </div>
+            <CardDescription className="mt-3">Please enter your name to get started.</CardDescription> {/* Adjusted margin */}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleNameSubmit} className="space-y-6">
@@ -219,3 +250,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
