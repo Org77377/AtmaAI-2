@@ -4,13 +4,19 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { quotes, type Quote } from '@/lib/quotes';
-import { RefreshCw, Zap } from 'lucide-react'; 
-import { Button } from './ui/button';
+import { Zap } from 'lucide-react';
+// Button import and RefreshCw icon import are removed as the button is no longer used.
 
 export default function DailyQuoteCard() {
   const [quote, setQuote] = useState<Quote | null>(null);
 
+  // This function is still used by useEffect to set the initial quote
   const getRandomQuote = () => {
+    // Ensure quotes array is not empty to prevent errors
+    if (quotes.length === 0) {
+        setQuote({ text: "No quotes available at the moment.", author: "System" });
+        return;
+    }
     const randomIndex = Math.floor(Math.random() * quotes.length);
     setQuote(quotes[randomIndex]);
   };
@@ -40,11 +46,9 @@ export default function DailyQuoteCard() {
           "{quote.text}"
         </blockquote>
       </CardContent>
-      <CardFooter className="p-6 pt-0 flex flex-col items-center space-y-4">
-        <p className="text-sm text-muted-foreground">- {quote.author}</p>
-        <Button variant="outline" size="sm" onClick={getRandomQuote} className="mt-2 border-accent text-accent hover:bg-accent/10">
-          <RefreshCw className="mr-2 h-4 w-4" /> Another Thought
-        </Button>
+      <CardFooter className="p-6 pt-0 flex flex-col items-center">
+        <p className="text-sm text-muted-foreground mt-2">- {quote.author}</p>
+        {/* "Another Thought" button has been removed from here */}
       </CardFooter>
     </Card>
   );
