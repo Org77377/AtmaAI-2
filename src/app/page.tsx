@@ -38,7 +38,7 @@ export default function HomePage() {
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
-      }, 3000); // Changed from 1500 to 3000
+      }, 3000); 
     }
   };
 
@@ -166,10 +166,10 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <Image
-              src="https://placehold.co/600x400.png"
+              src="https://placehold.co/480x270.png"
               alt="Friendly Chat illustration"
-              width={600}
-              height={400}
+              width={480}
+              height={270}
               className="rounded-md mb-4 object-cover w-full h-48"
               data-ai-hint="support conversation"
             />
@@ -191,10 +191,10 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
              <Image
-              src="https://placehold.co/600x400.png"
+              src="https://placehold.co/400x300.png"
               alt="Curated Stories illustration"
-              width={600}
-              height={400}
+              width={400}
+              height={300}
               className="rounded-md mb-4 object-cover w-full h-48"
               data-ai-hint="inspiration stories"
             />
@@ -216,4 +216,3 @@ export default function HomePage() {
     </div>
   );
 }
-
