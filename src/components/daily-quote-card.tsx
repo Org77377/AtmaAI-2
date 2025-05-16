@@ -3,13 +3,13 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { quotes as allQuotes, type QuoteWithId } from '@/lib/quotes';
+import { quotes as allQuotes, type Quote } from '@/lib/quotes'; // Correctly import Quote type
 import { Button } from '@/components/ui/button';
-import { Zap, Share2, BookmarkCheck, BookmarkPlus } from 'lucide-react'; // Removed ThumbsUp, ThumbsDown, Star
+import { Zap, Share2, BookmarkCheck, BookmarkPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function DailyQuoteCard() {
-  const [quote, setQuote] = useState<QuoteWithId | null>(null);
+  const [quote, setQuote] = useState<Quote | null>(null); // Use Quote type
   const [savedQuotes, setSavedQuotes] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -24,14 +24,20 @@ export default function DailyQuoteCard() {
 
   useEffect(() => {
     getRandomQuote();
-    const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes'); // Updated localStorage key
+    const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes');
     if (storedSavedQuotes) {
       try {
-        setSavedQuotes(JSON.parse(storedSavedQuotes));
+        const parsedQuotes = JSON.parse(storedSavedQuotes);
+        if (Array.isArray(parsedQuotes)) {
+          setSavedQuotes(parsedQuotes);
+        } else {
+          setSavedQuotes([]);
+          localStorage.removeItem('aatmAI-saved-quotes'); // Clean up non-array data
+        }
       } catch (error) {
         console.error("Failed to parse saved quotes from localStorage:", error);
         setSavedQuotes([]);
-        localStorage.removeItem('aatmAI-saved-quotes'); // Clean up corrupted data
+        localStorage.removeItem('aatmAI-saved-quotes'); 
       }
     }
   }, [getRandomQuote]);
@@ -63,7 +69,7 @@ export default function DailyQuoteCard() {
   };
 
   const handleSaveQuote = () => {
-    if (!quote) return;
+    if (!quote || !quote.id) return; // Ensure quote and quote.id exist
     let updatedSavedQuotes = [...savedQuotes];
     if (savedQuotes.includes(quote.id)) {
       updatedSavedQuotes = updatedSavedQuotes.filter(id => id !== quote.id);
@@ -73,10 +79,10 @@ export default function DailyQuoteCard() {
       toast({ title: "Quote Saved!", description: "Added to your saved quotes." });
     }
     setSavedQuotes(updatedSavedQuotes);
-    localStorage.setItem('aatmAI-saved-quotes', JSON.stringify(updatedSavedQuotes)); // Updated localStorage key
+    localStorage.setItem('aatmAI-saved-quotes', JSON.stringify(updatedSavedQuotes));
   };
 
-  const isQuoteSaved = quote && savedQuotes.includes(quote.id);
+  const isQuoteSaved = quote && quote.id && savedQuotes.includes(quote.id);
 
   if (!quote) {
     return (
@@ -105,9 +111,11 @@ export default function DailyQuoteCard() {
           <Button variant="outline" size="icon" onClick={handleShare} aria-label="Share quote">
             <Share2 className="h-5 w-5" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleSaveQuote} aria-label={isQuoteSaved ? "Unsave quote" : "Save quote"}>
-            {isQuoteSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <BookmarkPlus className="h-5 w-5" />}
-          </Button>
+          {quote.id && ( // Conditionally render save button if quote.id exists
+            <Button variant="outline" size="icon" onClick={handleSaveQuote} aria-label={isQuoteSaved ? "Unsave quote" : "Save quote"}>
+              {isQuoteSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <BookmarkPlus className="h-5 w-5" />}
+            </Button>
+          )}
         </div>
       </CardFooter>
     </Card>

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { quotes as allQuotes, type QuoteWithId } from '@/lib/quotes';
+import { quotes as allQuotes, type Quote } from '@/lib/quotes'; // Correctly import Quote type
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, BookmarkX, Loader2 } from 'lucide-react';
@@ -10,24 +10,24 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
 export default function SavedQuotesPage() {
-  const [displayedQuotes, setDisplayedQuotes] = useState<QuoteWithId[]>([]);
+  const [displayedQuotes, setDisplayedQuotes] = useState<Quote[]>([]); // Use Quote type
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
   useEffect(() => {
     setIsLoading(true);
     try {
-      const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes'); // Updated localStorage key
+      const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes');
       if (storedSavedQuotes) {
         const ids: string[] = JSON.parse(storedSavedQuotes);
         if (Array.isArray(ids)) {
           const savedQuoteObjects = ids
             .map(id => allQuotes.find(q => q.id === id))
-            .filter((q): q is QuoteWithId => q !== undefined);
+            .filter((q): q is Quote => q !== undefined); // Ensure q is of type Quote
           setDisplayedQuotes(savedQuoteObjects);
         } else {
           setDisplayedQuotes([]);
-          localStorage.removeItem('aatmAI-saved-quotes'); // Clean up bad data
+          localStorage.removeItem('aatmAI-saved-quotes'); 
         }
       } else {
         setDisplayedQuotes([]);
@@ -35,7 +35,7 @@ export default function SavedQuotesPage() {
     } catch (error) {
       console.error("Failed to load saved quotes:", error);
       setDisplayedQuotes([]);
-      localStorage.removeItem('aatmAI-saved-quotes'); // Clean up potentially corrupt data
+      localStorage.removeItem('aatmAI-saved-quotes');
       toast({
         title: "Error Loading Saved Quotes",
         description: "There was an issue retrieving your saved quotes. Any corrupt data has been cleared.",
@@ -49,13 +49,13 @@ export default function SavedQuotesPage() {
     const updatedDisplayedQuotes = displayedQuotes.filter(q => q.id !== quoteId);
     setDisplayedQuotes(updatedDisplayedQuotes);
 
-    const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes'); // Updated localStorage key
+    const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes');
     if (storedSavedQuotes) {
       try {
         const ids: string[] = JSON.parse(storedSavedQuotes);
         if (Array.isArray(ids)) {
           const updatedIds = ids.filter(id => id !== quoteId);
-          localStorage.setItem('aatmAI-saved-quotes', JSON.stringify(updatedIds)); // Updated localStorage key
+          localStorage.setItem('aatmAI-saved-quotes', JSON.stringify(updatedIds));
           toast({ title: "Quote Removed", description: "Removed from your saved quotes." });
         }
       } catch (error) {
