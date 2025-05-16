@@ -22,6 +22,8 @@ export default function HomePage() {
     const storedName = localStorage.getItem('userName');
     if (storedName) {
       setUserName(storedName);
+    } else {
+      setUserName(null); // Explicitly set to null if not found
     }
     setIsLoadingName(false);
   }, []);
