@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Aatme',
-  description: 'Your personal guide for career, finance, and relationships with Aatme.',
+  title: 'Aatme - Your AI Therapist',
+  description: 'Aatme, your AI therapist: A personal guide for career, finance, and relationships.',
 };
 
 export default function RootLayout({
@@ -28,15 +28,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
-      <body className="font-sans antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex flex-col min-h-screen bg-background text-foreground">
+          <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow container mx-auto px-4 py-8">
               {children}
