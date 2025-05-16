@@ -3,11 +3,7 @@
 import { generatePersonalizedGuidance, type PersonalizedGuidanceInput, type PersonalizedGuidanceOutput } from '@/ai/flows/generate-personalized-guidance';
 import { z } from 'zod';
 
-export const guidanceFormSchema = z.object({
-  profile: z.string().min(50, "Profile information should be detailed, at least 50 characters."),
-  mood: z.string().min(3, "Please describe your current mood."),
-  issue: z.string().min(20, "Please describe your issue in detail, at least 20 characters."),
-});
+// guidanceFormSchema is now defined inside handleGenerateGuidance
 
 export type GuidanceFormState = {
   message?: string;
@@ -20,6 +16,12 @@ export async function handleGenerateGuidance(
   prevState: GuidanceFormState,
   formData: FormData
 ): Promise<GuidanceFormState> {
+  const guidanceFormSchema = z.object({
+    profile: z.string().min(50, "Profile information should be detailed, at least 50 characters."),
+    mood: z.string().min(3, "Please describe your current mood."),
+    issue: z.string().min(20, "Please describe your issue in detail, at least 20 characters."),
+  });
+
   const validatedFields = guidanceFormSchema.safeParse({
     profile: formData.get('profile'),
     mood: formData.get('mood'),
