@@ -1,42 +1,86 @@
+"use client";
 
-{
-  "header": {
-    "home": "Home",
-    "chat": "Chat",
-    "stories": "Stories",
-    "about_us": "About Us",
-    "saved_quotes": "Saved Quotes",
-    "tagline": "your AI therapist",
-    "peace_out_reset": "Peace Out & Reset"
-  },
-  "homePage": {
-    "welcome_to_aatmAI": "Welcome to AatmAI",
-    "greeting_morning": "Good Morning",
-    "greeting_afternoon": "Good Afternoon",
-    "greeting_evening": "Good Evening",
-    "hero_subtitle": "Your compassionate companion for navigating life's challenges. We offer friendly advice, inspiring stories, and a space to reflect.",
-    "chat_now_button": "Chat Now with AatmAI",
-    "what_aatmAI_can_do": "What AatmAI Can Do For You",
-    "feature_1": "Offer a friendly ear and a space to share your thoughts.",
-    "feature_2": "Provide AI-driven insights for career, financial, and relationship concerns.",
-    "feature_3": "Share inspiring real-life stories tailored to your situation.",
-    "feature_4": "Help you reflect and find motivation with daily quotes.",
-    "feature_5": "Respect your privacy: Your interactions are anonymous and no personal data is stored.",
-    "mood_tracker_title": "How are you feeling today?",
-    "mood_tracker_description": "Sharing your mood can help you understand yourself better.",
-    "friendly_chat_card_title": "Friendly Chat",
-    "friendly_chat_card_description": "Receive AI-driven advice tailored to your career, financial, and relationship concerns, with cultural sensitivity for Indian users.",
-    "friendly_chat_card_button": "Let's Chat",
-    "curated_stories_card_title": "Curated Life Stories",
-    "curated_stories_card_description": "Discover inspiring real-life stories curated by AI to match your profile and challenges, offering motivation and new perspectives.",
-    "curated_stories_card_button": "Explore Stories",
-    "learn_more_about_aatmAI": "Learn More About AatmAI's Story",
-    "daily_quote_title": "A Moment of Reflection"
-  },
-  "languageSwitcher": {
-    "change_language": "Change Language",
-    "english": "English",
-    "hindi": "Hindi",
-    "kannada": "Kannada"
-  }
+import { useState, type FormEvent } from 'react';
+import { Smile, Frown, Meh, Annoyed, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+const moodOptions = [
+  { value: 'joyful', label: 'Joyful', icon: <Smile className="w-6 h-6 text-green-500" /> },
+  { value: 'calm', label: 'Calm', icon: <TrendingUp className="w-6 h-6 text-blue-500" /> },
+  { value: 'neutral', label: 'Neutral', icon: <Meh className="w-6 h-6 text-gray-500" /> },
+  { value: 'anxious', label: 'Anxious', icon: <Annoyed className="w-6 h-6 text-yellow-500" /> },
+  { value: 'sad', label: 'Sad', icon: <Frown className="w-6 h-6 text-red-500" /> },
+];
+
+export default function MoodTracker() {
+  const [selectedMood, setSelectedMood] = useState<string | undefined>(undefined);
+  const [submittedMood, setSubmittedMood] = useState<string | undefined>(undefined);
+  const { toast } = useToast();
+
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!selectedMood) {
+      toast({
+        title: "No Mood Selected",
+        description: "Please select a mood to share.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSubmittedMood(selectedMood); 
+    toast({
+      title: "Mood Shared!",
+      description: `Thanks for sharing that you're feeling ${moodOptions.find(m => m.value === selectedMood)?.label || selectedMood}.`,
+    });
+    // Keep selectedMood to show pulse, then clear it and submittedMood
+    setTimeout(() => {
+        setSubmittedMood(undefined);
+        setSelectedMood(undefined); 
+    }, 1500); 
+  };
+
+  return (
+    <Card className="w-full max-w-lg mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <CardHeader>
+        <CardTitle className="text-2xl text-center">How are you feeling today?</CardTitle>
+        <CardDescription className="text-center">
+          Sharing your mood can help you understand yourself better.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <RadioGroup
+            value={selectedMood}
+            onValueChange={setSelectedMood}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"
+          >
+            {moodOptions.map((mood) => (
+              <Label
+                key={mood.value}
+                htmlFor={`mood-${mood.value}`}
+                className={cn(
+                  "flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ease-in-out",
+                  selectedMood === mood.value 
+                    ? "bg-primary/20 border-primary ring-2 ring-primary scale-105" 
+                    : "hover:bg-accent hover:border-accent-foreground/50",
+                  submittedMood === mood.value && "animate-pulse border-2 border-green-500 bg-green-500/20" 
+                )}
+              >
+                <RadioGroupItem value={mood.value} id={`mood-${mood.value}`} className="sr-only" />
+                {mood.icon}
+                <span className="mt-2 text-sm font-medium">{mood.label}</span>
+              </Label>
+            ))}
+          </RadioGroup>
+          <Button type="submit" className="w-full">Share how you're feeling</Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
 }

@@ -8,13 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, BookmarkCheck, BookmarkPlus, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface DailyQuoteCardProps {
-  dictionary: { // Expect a dictionary prop
-    daily_quote_title: string;
-  }
-}
-
-export default function DailyQuoteCard({ dictionary }: DailyQuoteCardProps) {
+export default function DailyQuoteCard() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [savedQuotes, setSavedQuotes] = useState<string[]>([]);
   const { toast } = useToast();
@@ -110,7 +104,7 @@ export default function DailyQuoteCard({ dictionary }: DailyQuoteCardProps) {
     <Card className="w-full max-w-2xl mx-auto shadow-xl border-primary/30 border-2 bg-card">
       <CardHeader className="pt-6 pb-2 flex flex-row items-center justify-center space-x-2">
         <Zap className="w-6 h-6 text-accent" />
-        <h3 className="text-xl font-semibold text-primary">{dictionary.daily_quote_title}</h3>
+        <h3 className="text-xl font-semibold text-primary">A Moment of Reflection</h3>
       </CardHeader>
       <CardContent className="p-6 pt-2 text-center">
         <blockquote className="text-xl italic font-medium text-foreground md:text-2xl">

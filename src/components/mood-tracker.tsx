@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const moodOptions = [ // Renamed to moodOptions to avoid conflict
+const moodOptions = [
   { value: 'joyful', label: 'Joyful', icon: <Smile className="w-6 h-6 text-green-500" /> },
   { value: 'calm', label: 'Calm', icon: <TrendingUp className="w-6 h-6 text-blue-500" /> },
   { value: 'neutral', label: 'Neutral', icon: <Meh className="w-6 h-6 text-gray-500" /> },
@@ -18,14 +18,7 @@ const moodOptions = [ // Renamed to moodOptions to avoid conflict
   { value: 'sad', label: 'Sad', icon: <Frown className="w-6 h-6 text-red-500" /> },
 ];
 
-interface MoodTrackerProps {
-  dictionary: {
-    mood_tracker_title: string;
-    mood_tracker_description: string;
-  }
-}
-
-export default function MoodTracker({ dictionary }: MoodTrackerProps) {
+export default function MoodTracker() {
   const [selectedMood, setSelectedMood] = useState<string | undefined>(undefined);
   const [submittedMood, setSubmittedMood] = useState<string | undefined>(undefined);
   const { toast } = useToast();
@@ -46,16 +39,19 @@ export default function MoodTracker({ dictionary }: MoodTrackerProps) {
       title: "Mood Shared!",
       description: `Thanks for sharing that you're feeling ${moodOptions.find(m => m.value === selectedMood)?.label || selectedMood}.`,
     });
-    setSelectedMood(undefined); 
-    setTimeout(() => setSubmittedMood(undefined), 1500); 
+    // Keep selectedMood to show pulse, then clear it and submittedMood
+    setTimeout(() => {
+        setSubmittedMood(undefined);
+        setSelectedMood(undefined); 
+    }, 1500); 
   };
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">{dictionary.mood_tracker_title}</CardTitle>
+        <CardTitle className="text-2xl text-center">How are you feeling today?</CardTitle>
         <CardDescription className="text-center">
-          {dictionary.mood_tracker_description}
+          Sharing your mood can help you understand yourself better.
         </CardDescription>
       </CardHeader>
       <CardContent>
