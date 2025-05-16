@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { allQuotes, type QuoteWithId } from '@/lib/quotes';
+import { quotes as allQuotes, type QuoteWithId } from '@/lib/quotes'; // Changed import
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, BookmarkX, Loader2 } from 'lucide-react';
