@@ -5,9 +5,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { quotes as allQuotes, type QuoteWithId } from '@/lib/quotes';
 import { Button } from '@/components/ui/button';
-import { Zap, ThumbsUp, ThumbsDown, Share2, Star, BookmarkCheck, BookmarkPlus } from 'lucide-react';
+import { Zap, Share2, BookmarkCheck, BookmarkPlus } from 'lucide-react'; // Removed ThumbsUp, ThumbsDown, Star
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 export default function DailyQuoteCard() {
   const [quote, setQuote] = useState<QuoteWithId | null>(null);
@@ -25,31 +24,35 @@ export default function DailyQuoteCard() {
 
   useEffect(() => {
     getRandomQuote();
-    const storedSavedQuotes = localStorage.getItem('aatme-saved-quotes');
+    const storedSavedQuotes = localStorage.getItem('aatmAI-saved-quotes'); // Updated localStorage key
     if (storedSavedQuotes) {
-      setSavedQuotes(JSON.parse(storedSavedQuotes));
+      try {
+        setSavedQuotes(JSON.parse(storedSavedQuotes));
+      } catch (error) {
+        console.error("Failed to parse saved quotes from localStorage:", error);
+        setSavedQuotes([]);
+        localStorage.removeItem('aatmAI-saved-quotes'); // Clean up corrupted data
+      }
     }
   }, [getRandomQuote]);
 
   const handleShare = async () => {
     if (!quote) return;
     const shareData = {
-      title: 'Aatme - Daily Quote',
+      title: 'AatmAI - Daily Quote',
       text: `"${quote.text}" - ${quote.author}`,
-      url: window.location.href, // Or a specific URL if you have one for quotes
+      url: window.location.href,
     };
     try {
       if (navigator.share && navigator.canShare(shareData)) {
         await navigator.share(shareData);
         toast({ title: "Quote Shared!", description: "The quote has been shared." });
       } else {
-        // Fallback to copy
         await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
         toast({ title: "Quote Copied!", description: "The quote has been copied to your clipboard." });
       }
     } catch (err) {
       console.error("Share failed:", err);
-      // Fallback to copy if navigator.share exists but fails
       try {
         await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
         toast({ title: "Quote Copied!", description: "Sharing failed, quote copied to clipboard." });
@@ -70,7 +73,7 @@ export default function DailyQuoteCard() {
       toast({ title: "Quote Saved!", description: "Added to your saved quotes." });
     }
     setSavedQuotes(updatedSavedQuotes);
-    localStorage.setItem('aatme-saved-quotes', JSON.stringify(updatedSavedQuotes));
+    localStorage.setItem('aatmAI-saved-quotes', JSON.stringify(updatedSavedQuotes)); // Updated localStorage key
   };
 
   const isQuoteSaved = quote && savedQuotes.includes(quote.id);
@@ -86,7 +89,7 @@ export default function DailyQuoteCard() {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-xl border-primary/30 border-2 animate-fadeIn bg-card">
+    <Card className="w-full max-w-2xl mx-auto shadow-xl border-primary/30 border-2 bg-card">
       <CardHeader className="pt-6 pb-2 flex flex-row items-center justify-center space-x-2">
         <Zap className="w-6 h-6 text-accent" />
         <h3 className="text-xl font-semibold text-primary">A Moment of Reflection</h3>

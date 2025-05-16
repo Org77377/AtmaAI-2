@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription
 import { handleCurateStories, type StoriesFormState } from '@/app/stories/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { Loader2, AlertTriangle, Sparkles } from 'lucide-react'; // Removed CheckCircle
 
 const initialState: StoriesFormState = {
   message: '',
@@ -30,10 +30,10 @@ function SubmitButton() {
 export default function CuratedStoriesForm() {
   const [state, formAction] = React.useActionState(handleCurateStories, initialState);
   const { toast } = useToast();
-  const { pending } = useFormStatus(); // Get pending state for the whole form
+  const { pending } = useFormStatus();
 
   useEffect(() => {
-    if (state.message && !pending) { // Only show toast if not pending
+    if (state.message && !pending) { 
       if (state.isError) {
         toast({
           title: "Error",
@@ -82,7 +82,7 @@ export default function CuratedStoriesForm() {
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">Aatme is searching for stories...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is searching for stories...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             Please wait a moment. This can take a few seconds.
           </AlertDescription>
@@ -94,7 +94,7 @@ export default function CuratedStoriesForm() {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>An Error Occurred</AlertTitle>
             <AlertDescription>
-              {state.message} Please try again. If the problem persists, Aatme might be having trouble finding stories.
+              {state.message} Please try again. If the problem persists, AatmAI might be having trouble finding stories.
             </AlertDescription>
           </Alert>
       )}

@@ -13,7 +13,7 @@ export default function AboutPage() {
             <div className="p-4 bg-primary rounded-full">
               <Users className="w-12 h-12 text-primary-foreground" />
             </div>
-            <CardTitle className="text-3xl md:text-4xl text-primary">About Aatme</CardTitle>
+            <CardTitle className="text-3xl md:text-4xl text-primary">About AatmAI</CardTitle>
             <CardDescription className="text-lg text-foreground">
               The story behind your compassionate companion.
             </CardDescription>
@@ -21,7 +21,7 @@ export default function AboutPage() {
         </CardHeader>
         <CardContent className="p-6 md:p-8 space-y-6">
           <p className="text-lg text-foreground leading-relaxed">
-            Aatme was born from the experiences of two enthusiasts who, like many, faced their own share of life's challenges. We realized the profound need for a supportive, non-judgmental space where individuals could find understanding and a fresh perspective.
+            AatmAI was born from the experiences of two enthusiasts who, like many, faced their own share of life's challenges. We realized the profound need for a supportive, non-judgmental space where individuals could find understanding and a fresh perspective.
           </p>
           <div className="grid md:grid-cols-2 gap-6 text-center md:text-left">
             <div className="flex flex-col items-center md:items-start p-4 border rounded-lg bg-card">
@@ -40,7 +40,7 @@ export default function AboutPage() {
             </div>
           </div>
           <p className="text-lg text-foreground leading-relaxed">
-            Our goal with Aatme is to leverage AI to offer a friendly, empathetic companion that provides emotional support and helps users navigate career, financial, and relationship issues with greater clarity and resilience. We believe everyone deserves a space to be heard and understood.
+            Our goal with AatmAI is to leverage AI to offer a friendly, empathetic companion that provides emotional support and helps users navigate career, financial, and relationship issues with greater clarity and resilience. We believe everyone deserves a space to be heard and understood.
           </p>
           <div className="text-center pt-4">
             <Button asChild size="lg">

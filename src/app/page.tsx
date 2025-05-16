@@ -25,7 +25,7 @@ export default function HomePage() {
     if (storedName) {
       setUserName(storedName);
     } else {
-      setUserName(null);
+      setUserName(null); // Explicitly set to null if not found
     }
     setIsLoadingName(false);
 
@@ -49,7 +49,7 @@ export default function HomePage() {
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
-        router.refresh();
+        router.refresh(); // Refresh to ensure layout components re-render if needed
       }, 3000);
     }
   };
@@ -67,7 +67,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-12">
         <Card className="w-full max-w-md p-6 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl">Welcome to Aatme!</CardTitle>
+            <CardTitle className="text-3xl">Welcome to AatmAI!</CardTitle>
             <CardDescription>your AI therapist</CardDescription>
             <CardDescription className="mt-2">Please enter your name to get started.</CardDescription>
           </CardHeader>
@@ -99,7 +99,7 @@ export default function HomePage() {
     return (
       <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-center">
         <Wind className="h-16 w-16 text-primary mb-6 animate-pulse" />
-        <p className="text-2xl font-semibold text-foreground mb-2">Connecting to Aatme...</p>
+        <p className="text-2xl font-semibold text-foreground mb-2">Connecting to AatmAI...</p>
         <p className="text-lg italic text-muted-foreground">"'This time will pass.' - Shri Krishna"</p>
       </div>
     );
@@ -121,7 +121,7 @@ export default function HomePage() {
         </h1>
         <div className="mt-2">
           <p className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-           Welcome to Aatme
+           Welcome to AatmAI
           </p>
           <p className="mt-1 text-md text-muted-foreground">your AI therapist</p>
         </div>
@@ -132,7 +132,7 @@ export default function HomePage() {
           <Button asChild size="lg" className="transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95">
             <Link href="/guidance">
               <MessageSquareHeart className="mr-2 h-5 w-5" />
-              Chat Now with Aatme
+              Chat Now with AatmAI
             </Link>
           </Button>
         </div>
@@ -146,10 +146,10 @@ export default function HomePage() {
           <CardHeader>
             <div className="flex items-center gap-3 mb-2 justify-center">
               <Sparkles className="w-8 h-8 text-accent" />
-              <CardTitle className="text-2xl text-center">What Aatme Can Do For You</CardTitle>
+              <CardTitle className="text-2xl text-center">What AatmAI Can Do For You</CardTitle>
             </div>
             <CardDescription className="text-center">
-              Aatme is designed to be your supportive companion. Here's how I can help:
+              AatmAI is designed to be your supportive companion. Here's how I can help:
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -212,7 +212,7 @@ export default function HomePage() {
         <Button asChild variant="link" size="lg">
           <Link href="/about">
             <Users className="mr-2 h-5 w-5" />
-            Learn More About Aatme's Story
+            Learn More About AatmAI's Story
           </Link>
         </Button>
       </section>

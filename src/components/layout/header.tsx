@@ -43,7 +43,7 @@ export default function Header() {
         <Link href="/" className="mr-4 md:mr-8 flex items-baseline space-x-2">
           <Sparkles className="h-6 w-6 text-primary" />
           <div>
-            <span className="font-bold text-lg">Aatme</span>
+            <span className="font-bold text-lg">AatmAI</span>
             <span className="ml-1.5 text-xs text-muted-foreground">your AI therapist</span>
           </div>
         </Link>
@@ -76,7 +76,7 @@ export default function Header() {
                   <Link href="/" className="flex items-baseline space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <Sparkles className="h-6 w-6 text-primary" />
                      <div>
-                        <span className="font-bold text-lg">Aatme</span>
+                        <span className="font-bold text-lg">AatmAI</span>
                         <span className="ml-1.5 text-xs text-muted-foreground">your AI therapist</span>
                     </div>
                   </Link>

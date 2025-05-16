@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   name: 'personalizedGuidancePrompt',
   input: {schema: PersonalizedGuidanceInputSchema},
   output: {schema: PersonalizedGuidanceOutputSchema},
-  prompt: `You are Aatme, a friendly and empathetic AI companion designed to provide emotional support and a listening ear to Indian users on career, financial, and relationship issues. Your goal is to be a compassionate friend.
+  prompt: `You are AatmAI, a friendly and empathetic AI companion designed to provide emotional support and a listening ear to Indian users on career, financial, and relationship issues. Your goal is to be a compassionate friend.
 
   I may be an AI, but my responses are based on common human experiences and patterns. I learn from our conversations to give you thoughtful suggestions.
 

@@ -1,17 +1,17 @@
 
 "use client";
 
-import React, { useEffect } from 'react'; 
+import React, { useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription, CardFooter
 import { handleGenerateGuidance, type GuidanceFormState } from '@/app/guidance/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle, AlertTriangle, Info, Sparkles } from 'lucide-react';
+import { Loader2, AlertTriangle, Info, Sparkles } from 'lucide-react'; // Removed CheckCircle
 
 const initialState: GuidanceFormState = {
   message: '',
@@ -23,7 +23,7 @@ function SubmitButton() {
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-      Chat with Aatme
+      Chat with AatmAI
     </Button>
   );
 }
@@ -31,10 +31,10 @@ function SubmitButton() {
 export default function PersonalizedGuidanceForm() {
   const [state, formAction] = React.useActionState(handleGenerateGuidance, initialState); 
   const { toast } = useToast();
-  const { pending } = useFormStatus(); // Get pending state for the whole form
+  const { pending } = useFormStatus();
 
   useEffect(() => {
-    if (state.message && !pending) { // Only show toast if not pending
+    if (state.message && !pending) {
       if (state.isError) {
         toast({
           title: "Error",
@@ -43,7 +43,7 @@ export default function PersonalizedGuidanceForm() {
         });
       } else if (state.guidance) {
          toast({
-          title: "Aatme Responded!",
+          title: "AatmAI Responded!",
           description: state.message,
         });
       }
@@ -54,7 +54,7 @@ export default function PersonalizedGuidanceForm() {
     <form action={formAction} className="space-y-6">
       <div className="p-4 border rounded-md bg-accent/10 text-accent-foreground/80 text-sm">
         <Info className="inline-block h-4 w-4 mr-2" />
-        Aatme is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences. Your privacy is respected; no personal data is stored.
+        AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences. Your privacy is respected; no personal data is stored.
       </div>
       <div>
         <Label htmlFor="profile" className="text-lg font-semibold">About You (Optional, helps personalize our chat)</Label>
@@ -88,7 +88,7 @@ export default function PersonalizedGuidanceForm() {
           id="issue"
           name="issue"
           rows={5}
-          placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. Aatme is here to listen without judgment."
+          placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. AatmAI is here to listen without judgment."
           className="mt-2"
           required
           disabled={pending}
@@ -99,9 +99,9 @@ export default function PersonalizedGuidanceForm() {
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">Aatme is thinking...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is thinking...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
-            Please wait a moment while Aatme considers your thoughts.
+            Please wait a moment while AatmAI considers your thoughts.
           </AlertDescription>
         </Alert>
       )}
@@ -111,7 +111,7 @@ export default function PersonalizedGuidanceForm() {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>An Error Occurred</AlertTitle>
             <AlertDescription>
-              {state.message} Please try again. If the problem persists, Aatme might be taking a short break.
+              {state.message} Please try again. If the problem persists, AatmAI might be taking a short break.
             </AlertDescription>
           </Alert>
       )}
@@ -123,7 +123,7 @@ export default function PersonalizedGuidanceForm() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
-              <CardTitle className="text-primary">Aatme's Thoughts For You</CardTitle>
+              <CardTitle className="text-primary">AatmAI's Thoughts For You</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
