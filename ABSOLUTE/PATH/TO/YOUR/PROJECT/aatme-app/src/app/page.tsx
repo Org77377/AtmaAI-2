@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Image from 'next/image';
+// Image import removed as no Image components are used on this page anymore
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -168,6 +168,7 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Image component previously here has been removed */}
             <Button asChild className="w-full mt-4">
               <Link href="/guidance">Let's Chat <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
@@ -185,6 +186,7 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Image component previously here has been removed */}
             <Button asChild className="w-full mt-4">
               <Link href="/stories">Explore Stories <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
