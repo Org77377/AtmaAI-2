@@ -1,18 +1,89 @@
+
+"use client";
+
 import Link from 'next/link';
-import { ArrowRight, BarChart3, BookOpen, MessageSquareHeart } from 'lucide-react';
+import { ArrowRight, BarChart3, BookOpen, MessageSquareHeart, Loader2 } from 'lucide-react';
 import DailyQuoteCard from '@/components/daily-quote-card';
 import MoodTracker from '@/components/mood-tracker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Image from 'next/image';
+import { useState, useEffect, type FormEvent } from 'react';
 
 export default function HomePage() {
+  const [userName, setUserName] = useState<string | null>(null);
+  const [nameInput, setNameInput] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleNameSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    const trimmedName = nameInput.trim();
+    if (trimmedName) {
+      localStorage.setItem('userName', trimmedName);
+      setUserName(trimmedName);
+      setNameInput(""); // Clear input after submission
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!userName) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-12">
+        <Card className="w-full max-w-md p-6 shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl">Welcome to Aatme!</CardTitle>
+            <CardDescription>Please enter your name to get started.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleNameSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="name" className="text-lg font-semibold">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Your Name"
+                  required
+                  className="mt-2 text-base"
+                />
+              </div>
+              <Button type="submit" className="w-full text-lg py-3">
+                Continue
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       <section className="text-center py-12 bg-card rounded-xl shadow-lg">
         <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl md:text-6xl">
-          Welcome to Mitra Guide
+          Hi {userName},
         </h1>
+        <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
+         Welcome to Aatme
+        </p>
         <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
           Your compassionate companion for navigating life's challenges. We offer personalized guidance, inspiring stories, and a space to reflect.
         </p>

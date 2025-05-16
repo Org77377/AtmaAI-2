@@ -1,3 +1,4 @@
+
 import PersonalizedGuidanceForm from '@/components/personalized-guidance-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquareHeart } from 'lucide-react';
@@ -12,7 +13,7 @@ export default function GuidancePage() {
             <CardTitle className="text-3xl md:text-4xl">Personalized Guidance</CardTitle>
           </div>
           <CardDescription className="text-lg">
-            Share your concerns, and let Mitra Guide offer tailored advice to help you navigate career, financial, or relationship challenges.
+            Share your concerns, and let Aatme offer tailored advice to help you navigate career, financial, or relationship challenges.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI-driven personalized guidance flow for career, financial, and relationship issues, tailored to Indian users.
@@ -51,7 +52,7 @@ const prompt = ai.definePrompt({
   Explain your reasoning for the provided guidance.
   Speak in a supportive and encouraging tone.
   Remember that the user is from India, so cultural context is very important.
-  Consider that this application is named Mitra Guide.
+  Consider that this application is named Aatme.
   `,
 });
 

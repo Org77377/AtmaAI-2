@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -12,7 +13,7 @@ export default function Header() {
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-8 flex items-center space-x-2">
           <Sparkles className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">Mitra Guide</span>
+          <span className="font-bold text-lg">Aatme</span>
         </Link>
         <MainNav />
         <div className="flex flex-1 items-center justify-end space-x-4">
