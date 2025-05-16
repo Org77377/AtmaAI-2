@@ -23,7 +23,7 @@ export default function HomePage() {
     if (storedName) {
       setUserName(storedName);
     } else {
-      setUserName(null); // Explicitly set to null if not found
+      setUserName(null); 
     }
     setIsLoadingName(false);
   }, []);
@@ -112,6 +112,14 @@ export default function HomePage() {
         <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
           Your compassionate companion for navigating life's challenges. We offer friendly advice, inspiring stories, and a space to reflect.
         </p>
+        <div className="mt-8">
+          <Button asChild size="lg" className="transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95">
+            <Link href="/guidance">
+              <MessageSquareHeart className="mr-2 h-5 w-5" />
+              Chat Now with Aatme
+            </Link>
+          </Button>
+        </div>
         <div className="mt-10">
           <DailyQuoteCard />
         </div>
