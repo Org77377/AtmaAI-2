@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { quotes, type Quote } from '@/lib/quotes';
-import { RefreshCw, Zap } from 'lucide-react'; // Added Zap for visual flair
+import { RefreshCw, Zap } from 'lucide-react'; 
 import { Button } from './ui/button';
 
 export default function DailyQuoteCard() {
@@ -49,19 +49,3 @@ export default function DailyQuoteCard() {
     </Card>
   );
 }
-
-// Add a simple fadeIn animation to globals.css or tailwind.config.js if needed
-// For now, a simple classname 'animate-fadeIn' is used as a placeholder.
-// You can define it in globals.css:
-/*
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out;
-}
-*/
-// Added CardHeader to Card component import in case it wasn't there
-import { CardHeader } from '@/components/ui/card';
-

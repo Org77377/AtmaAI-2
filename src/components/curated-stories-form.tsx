@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from 'react';
+import React, { useEffect } from 'react'; // Updated import
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ function SubmitButton() {
 }
 
 export default function CuratedStoriesForm() {
-  const [state, formAction] = useActionState(handleCurateStories, initialState);
+  const [state, formAction] = React.useActionState(handleCurateStories, initialState); // Changed to React.useActionState
   const { toast } = useToast();
 
   useEffect(() => {

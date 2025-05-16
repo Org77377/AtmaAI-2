@@ -5,10 +5,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-// Export navItems so it can be used by the mobile header
 export const navItems = [
   { href: "/", label: "Home" },
-  { href: "/guidance", label: "Chat" }, // Changed from Guidance
+  { href: "/guidance", label: "Chat" }, 
   { href: "/stories", label: "Stories" },
   { href: "/about", label: "About Us" },
 ]
@@ -17,7 +16,6 @@ export function MainNav() {
   const pathname = usePathname()
 
   return (
-    // This nav is now primarily for desktop, mobile nav is in Header.tsx
     <nav className="hidden md:flex items-center space-x-2 sm:space-x-4 lg:space-x-6">
       {navItems.map((item) => (
         <Link
@@ -26,7 +24,7 @@ export function MainNav() {
           className={cn(
             "text-sm font-medium transition-colors hover:text-primary",
             pathname === item.href ? "text-primary" : "text-muted-foreground",
-            "px-1 py-1 sm:px-2" 
+            "px-2 py-1 sm:px-3" 
           )}
         >
           {item.label}

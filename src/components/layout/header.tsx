@@ -27,7 +27,7 @@ export default function Header() {
         description: "You've been logged out. Enter a new name to start fresh.",
       });
       setIsMobileMenuOpen(false); 
-      router.replace('/'); // Use replace to avoid adding to history
+      router.replace('/'); 
       router.refresh(); 
     }
   };
@@ -40,13 +40,11 @@ export default function Header() {
           <span className="font-bold text-lg">Aatme</span>
         </Link>
         
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex md:flex-grow"> {/* Allow main nav to grow */}
+        <div className="hidden md:flex md:flex-grow">
          <MainNav />
         </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto"> {/* Added ml-auto to push to the right */}
+        <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto">
           <ThemeToggle />
           <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 sm:px-3">
             <LogOut className="mr-0 sm:mr-1.5 h-3.5 w-3.5" />
@@ -55,7 +53,6 @@ export default function Header() {
           </Button>
         </div>
 
-        {/* Mobile Menu Trigger & Theme Toggle */}
         <div className="md:hidden flex flex-1 items-center justify-end space-x-2">
           <ThemeToggle />
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -92,13 +89,6 @@ export default function Header() {
               </div>
               <Separator className="my-2" />
               <div className="p-4 space-y-4">
-                {/* Theme toggle is already outside for mobile, but can be kept here for consistency if sheet is always used */}
-                {/* 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Theme</span>
-                  <ThemeToggle />
-                </div>
-                */}
                 <SheetClose asChild>
                     <Button variant="outline" size="sm" onClick={handleLogout} className="w-full">
                         <LogOut className="mr-1.5 h-4 w-4" />

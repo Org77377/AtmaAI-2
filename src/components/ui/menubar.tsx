@@ -234,7 +234,7 @@ const MenubarShortcut = ({
     />
   )
 }
-MenubarShortcut.displayname = "MenubarShortcut"
+MenubarShortcut.displayName = "MenubarShortcut" // Corrected displayname to displayName
 
 export {
   Menubar,

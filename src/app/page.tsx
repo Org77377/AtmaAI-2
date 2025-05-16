@@ -11,12 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { useState, useEffect, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState<string>("");
   const [isLoadingName, setIsLoadingName] = useState<boolean>(true);
   const [isAppLoading, setIsAppLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     const storedName = localStorage.getItem('userName');
@@ -38,6 +40,7 @@ export default function HomePage() {
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
+        router.refresh(); // Refresh to ensure content updates if any logic depends on this state
       }, 3000); 
     }
   };
