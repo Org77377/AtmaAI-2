@@ -31,9 +31,10 @@ function SubmitButton() {
 export default function PersonalizedGuidanceForm() {
   const [state, formAction] = React.useActionState(handleGenerateGuidance, initialState); 
   const { toast } = useToast();
+  const { pending } = useFormStatus(); // Get pending state for the whole form
 
   useEffect(() => {
-    if (state.message) {
+    if (state.message && !pending) { // Only show toast if not pending
       if (state.isError) {
         toast({
           title: "Error",
@@ -47,7 +48,7 @@ export default function PersonalizedGuidanceForm() {
         });
       }
     }
-  }, [state, toast]);
+  }, [state, pending, toast]);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -63,6 +64,7 @@ export default function PersonalizedGuidanceForm() {
           rows={4}
           placeholder="You can share a bit about yourself: perhaps your general situation, interests, or anything you feel is relevant. The more context, the better I can understand."
           className="mt-2"
+          disabled={pending}
         />
         {state.fields?.profile && <p className="text-sm text-destructive mt-1">{state.fields.profile}</p>}
       </div>
@@ -75,6 +77,7 @@ export default function PersonalizedGuidanceForm() {
           placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
           className="mt-2"
           required
+          disabled={pending}
         />
         {state.fields?.mood && <p className="text-sm text-destructive mt-1">{state.fields.mood}</p>}
       </div>
@@ -88,13 +91,34 @@ export default function PersonalizedGuidanceForm() {
           placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. Aatme is here to listen without judgment."
           className="mt-2"
           required
+          disabled={pending}
         />
         {state.fields?.issue && <p className="text-sm text-destructive mt-1">{state.fields.issue}</p>}
       </div>
 
+      {pending && (
+        <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
+          <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="text-blue-700 dark:text-blue-300">Aatme is thinking...</AlertTitle>
+          <AlertDescription className="text-blue-600 dark:text-blue-400">
+            Please wait a moment while Aatme considers your thoughts.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!pending && state.message && state.isError && !state.fields && (
+         <Alert variant="destructive" className="mt-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>An Error Occurred</AlertTitle>
+            <AlertDescription>
+              {state.message} Please try again. If the problem persists, Aatme might be taking a short break.
+            </AlertDescription>
+          </Alert>
+      )}
+
       <SubmitButton />
 
-      {state.guidance && !state.isError && (
+      {!pending && state.guidance && !state.isError && (
         <Card className="mt-8 bg-primary/5 dark:bg-primary/10 border-primary/20">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -115,15 +139,6 @@ export default function PersonalizedGuidanceForm() {
             )}
           </CardContent>
         </Card>
-      )}
-      {state.message && state.isError && !state.fields && (
-         <Alert variant="destructive" className="mt-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>An Error Occurred</AlertTitle>
-            <AlertDescription>
-              {state.message}
-            </AlertDescription>
-          </Alert>
       )}
     </form>
   );

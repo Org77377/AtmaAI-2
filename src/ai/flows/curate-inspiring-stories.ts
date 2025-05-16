@@ -16,10 +16,12 @@ import {z} from 'genkit';
 const CurateInspiringStoriesInputSchema = z.object({
   userProfile: z
     .string()
-    .describe('Detailed profile of the user, including demographics, interests, and background.'),
+    .min(1, "User profile details help in curating relevant stories.")
+    .optional()
+    .or(z.literal("")), // Allow empty string if user skips
   currentChallenges: z
     .string()
-    .describe('Description of the users current challenges in life, career, or relationships.'),
+    .min(10, 'Please describe your current challenges in a bit more detail (at least 10 characters).'),
 });
 export type CurateInspiringStoriesInput = z.infer<
   typeof CurateInspiringStoriesInputSchema
@@ -28,7 +30,7 @@ export type CurateInspiringStoriesInput = z.infer<
 const CurateInspiringStoriesOutputSchema = z.object({
   stories: z
     .array(z.string())
-    .describe('An array of inspiring real-life stories relevant to the user, offering comfort and resilience.'),
+    .describe('An array of 3-4 inspiring real-life stories relevant to the user, offering comfort and resilience. Each story should be a concise paragraph.'),
 });
 export type CurateInspiringStoriesOutput = z.infer<
   typeof CurateInspiringStoriesOutputSchema
@@ -44,14 +46,16 @@ const prompt = ai.definePrompt({
   name: 'curateInspiringStoriesPrompt',
   input: {schema: CurateInspiringStoriesInputSchema},
   output: {schema: CurateInspiringStoriesOutputSchema},
-  prompt: `You are Aatme, an AI assistant designed to provide inspiring and relevant real-life stories to users based on their profile and current challenges. The goal is to offer emotional comfort and highlight resilience.
+  prompt: `You are Aatme, an AI assistant designed to provide inspiring and relevant real-life stories to users based on their profile and current challenges. Your primary goal is to offer emotional comfort, highlight resilience, and provide a sense of hope and perspective.
 
   User Profile: {{{userProfile}}}
   Current Challenges: {{{currentChallenges}}}
 
-  Based on the user's profile and challenges, curate a list of 3-5 inspiring real-life stories that could provide motivation, perspective, and emotional support. Each story should be a short paragraph summarizing the key points and inspirational aspects of the story.
-  Focus on stories that offer emotional comfort and resilience.
-  If appropriate and aligned with the user's context, you can include stories that echo themes from the Bhagavad Gita or similar wisdom traditions, focusing on universal values of strength, hope, and perseverance. Frame these in a general, non-denominational way.
+  Based on the user's profile (if provided) and their current challenges, curate a list of 3-4 concise, inspiring real-life stories.
+  Each story should be a short paragraph that clearly summarizes the key points and the inspirational aspects.
+  Focus sharply on stories that offer genuine emotional comfort, demonstrate resilience in the face of adversity, and instill a sense of hope. Avoid generic advice or overly simplistic narratives.
+  If appropriate and aligned with the user's context, you can include stories that echo themes from philosophies like the Bhagavad Gita or similar wisdom traditions, focusing on universal values of strength, hope, perseverance, and finding meaning. Frame these in a general, non-denominational way that is broadly relatable.
+  The stories should feel authentic and impactful.
 
   Format the stories as a JSON array of strings.
   `,
@@ -64,7 +68,10 @@ const curateInspiringStoriesFlow = ai.defineFlow(
     outputSchema: CurateInspiringStoriesOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt({
+        userProfile: input.userProfile || "User chose not to share profile details.",
+        currentChallenges: input.currentChallenges,
+    });
     return output!;
   }
 );

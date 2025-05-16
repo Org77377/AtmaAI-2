@@ -20,6 +20,7 @@ const moods = [
 
 export default function MoodTracker() {
   const [selectedMood, setSelectedMood] = useState<string | undefined>(undefined);
+  const [submittedMood, setSubmittedMood] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   const handleSubmit = (event: FormEvent) => {
@@ -32,13 +33,15 @@ export default function MoodTracker() {
       });
       return;
     }
-    // In a real app, you'd save this mood to a backend or state management
-    console.log('Mood shared:', selectedMood);
+    
+    setSubmittedMood(selectedMood); // For visual feedback
     toast({
       title: "Mood Shared!",
       description: `Thanks for sharing that you're feeling ${moods.find(m => m.value === selectedMood)?.label || selectedMood}.`,
     });
-    setSelectedMood(undefined); // Reset after submission
+    // Reset selectedMood for next input, but keep submittedMood for brief visual feedback
+    setSelectedMood(undefined); 
+    setTimeout(() => setSubmittedMood(undefined), 1000); // Clear feedback after 1 second
   };
 
   return (
@@ -61,8 +64,11 @@ export default function MoodTracker() {
                 key={mood.value}
                 htmlFor={`mood-${mood.value}`}
                 className={cn(
-                  "flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition-all duration-200",
-                  selectedMood === mood.value ? "bg-primary/10 border-primary ring-2 ring-primary" : "hover:bg-accent hover:border-accent-foreground/50"
+                  "flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ease-in-out",
+                  selectedMood === mood.value 
+                    ? "bg-primary/20 border-primary ring-2 ring-primary scale-105" 
+                    : "hover:bg-accent hover:border-accent-foreground/50",
+                  submittedMood === mood.value && "animate-pulse border-2 border-green-500 bg-green-500/20" // Feedback animation
                 )}
               >
                 <RadioGroupItem value={mood.value} id={`mood-${mood.value}`} className="sr-only" />

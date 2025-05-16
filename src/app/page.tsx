@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-// Image import removed as no Image components are used on this page anymore
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -18,6 +17,7 @@ export default function HomePage() {
   const [nameInput, setNameInput] = useState<string>("");
   const [isLoadingName, setIsLoadingName] = useState<boolean>(true);
   const [isAppLoading, setIsAppLoading] = useState<boolean>(false);
+  const [greeting, setGreeting] = useState<string>("Welcome");
   const router = useRouter();
 
   useEffect(() => {
@@ -25,9 +25,19 @@ export default function HomePage() {
     if (storedName) {
       setUserName(storedName);
     } else {
-      setUserName(null);
+      setUserName(null); // Ensure userName is null if not found
     }
     setIsLoadingName(false);
+
+    // Set time-based greeting
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setGreeting("Good Morning");
+    } else if (hour < 18) {
+      setGreeting("Good Afternoon");
+    } else {
+      setGreeting("Good Evening");
+    }
   }, []);
 
   const handleNameSubmit = (event: FormEvent) => {
@@ -41,7 +51,7 @@ export default function HomePage() {
       setTimeout(() => {
         setIsAppLoading(false);
         router.refresh();
-      }, 3000);
+      }, 3000); // 3 second loading
     }
   };
 
@@ -104,10 +114,10 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 animate-fadeIn">
       <section className="text-center py-12 bg-card rounded-xl shadow-lg">
         <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl md:text-6xl">
-          Hi {userName},
+          {greeting}, {userName}!
         </h1>
         <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
          Welcome to Aatme
@@ -128,7 +138,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="animate-fadeIn">
+      <section>
         <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2 justify-center">
@@ -142,7 +152,10 @@ export default function HomePage() {
           <CardContent>
             <ul className="space-y-4">
               {appFeatures.map((feature, index) => (
-                <li key={index} className="flex items-start gap-4 p-3 bg-background rounded-lg border">
+                <li 
+                  key={index} 
+                  className="flex items-start gap-4 p-3 bg-background rounded-lg border transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02] hover:border-primary/50"
+                >
                   <div className="flex-shrink-0 mt-1">{feature.icon}</div>
                   <p className="text-foreground">{feature.text}</p>
                 </li>
@@ -167,8 +180,7 @@ export default function HomePage() {
               Receive AI-driven advice tailored to your career, financial, and relationship concerns, with cultural sensitivity for Indian users.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Image component previously here has been removed */}
+          <CardContent className="pt-6"> {/* Added pt-6 for spacing as image was removed */}
             <Button asChild className="w-full mt-4">
               <Link href="/guidance">Let's Chat <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
@@ -185,8 +197,7 @@ export default function HomePage() {
               Discover inspiring real-life stories curated by AI to match your profile and challenges, offering motivation and new perspectives.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Image component previously here has been removed */}
+          <CardContent className="pt-6"> {/* Added pt-6 for spacing as image was removed */}
             <Button asChild className="w-full mt-4">
               <Link href="/stories">Explore Stories <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>

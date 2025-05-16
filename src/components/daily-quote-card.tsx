@@ -1,29 +1,79 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { quotes, type Quote } from '@/lib/quotes';
-import { Zap } from 'lucide-react';
-// Button import and RefreshCw icon import are removed as the button is no longer used.
+import { quotes as allQuotes, type QuoteWithId } from '@/lib/quotes';
+import { Button } from '@/components/ui/button';
+import { Zap, ThumbsUp, ThumbsDown, Share2, Star, BookmarkCheck, BookmarkPlus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function DailyQuoteCard() {
-  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quote, setQuote] = useState<QuoteWithId | null>(null);
+  const [savedQuotes, setSavedQuotes] = useState<string[]>([]);
+  const { toast } = useToast();
 
-  // This function is still used by useEffect to set the initial quote
-  const getRandomQuote = () => {
-    // Ensure quotes array is not empty to prevent errors
-    if (quotes.length === 0) {
-        setQuote({ text: "No quotes available at the moment.", author: "System" });
-        return;
+  const getRandomQuote = useCallback(() => {
+    if (allQuotes.length === 0) {
+      setQuote({ id: 'system-no-quote', text: "No quotes available at the moment.", author: "System" });
+      return;
     }
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    setQuote(quotes[randomIndex]);
-  };
+    const randomIndex = Math.floor(Math.random() * allQuotes.length);
+    setQuote(allQuotes[randomIndex]);
+  }, []);
 
   useEffect(() => {
     getRandomQuote();
-  }, []);
+    const storedSavedQuotes = localStorage.getItem('aatme-saved-quotes');
+    if (storedSavedQuotes) {
+      setSavedQuotes(JSON.parse(storedSavedQuotes));
+    }
+  }, [getRandomQuote]);
+
+  const handleShare = async () => {
+    if (!quote) return;
+    const shareData = {
+      title: 'Aatme - Daily Quote',
+      text: `"${quote.text}" - ${quote.author}`,
+      url: window.location.href, // Or a specific URL if you have one for quotes
+    };
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast({ title: "Quote Shared!", description: "The quote has been shared." });
+      } else {
+        // Fallback to copy
+        await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
+        toast({ title: "Quote Copied!", description: "The quote has been copied to your clipboard." });
+      }
+    } catch (err) {
+      console.error("Share failed:", err);
+      // Fallback to copy if navigator.share exists but fails
+      try {
+        await navigator.clipboard.writeText(`"${quote.text}" - ${quote.author}`);
+        toast({ title: "Quote Copied!", description: "Sharing failed, quote copied to clipboard." });
+      } catch (copyErr) {
+        toast({ title: "Failed to Share or Copy", description: "Could not share or copy the quote.", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleSaveQuote = () => {
+    if (!quote) return;
+    let updatedSavedQuotes = [...savedQuotes];
+    if (savedQuotes.includes(quote.id)) {
+      updatedSavedQuotes = updatedSavedQuotes.filter(id => id !== quote.id);
+      toast({ title: "Quote Unsaved", description: "Removed from your saved quotes." });
+    } else {
+      updatedSavedQuotes.push(quote.id);
+      toast({ title: "Quote Saved!", description: "Added to your saved quotes." });
+    }
+    setSavedQuotes(updatedSavedQuotes);
+    localStorage.setItem('aatme-saved-quotes', JSON.stringify(updatedSavedQuotes));
+  };
+
+  const isQuoteSaved = quote && savedQuotes.includes(quote.id);
 
   if (!quote) {
     return (
@@ -48,7 +98,14 @@ export default function DailyQuoteCard() {
       </CardContent>
       <CardFooter className="p-6 pt-0 flex flex-col items-center">
         <p className="text-sm text-muted-foreground mt-2">- {quote.author}</p>
-        {/* "Another Thought" button has been removed from here */}
+        <div className="mt-4 flex space-x-3">
+          <Button variant="outline" size="icon" onClick={handleShare} aria-label="Share quote">
+            <Share2 className="h-5 w-5" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={handleSaveQuote} aria-label={isQuoteSaved ? "Unsave quote" : "Save quote"}>
+            {isQuoteSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <BookmarkPlus className="h-5 w-5" />}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
