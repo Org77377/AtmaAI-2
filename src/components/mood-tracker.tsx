@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type FormEvent } from 'react';
@@ -26,16 +27,16 @@ export default function MoodTracker() {
     if (!selectedMood) {
       toast({
         title: "No Mood Selected",
-        description: "Please select a mood to log.",
+        description: "Please select a mood to share.",
         variant: "destructive",
       });
       return;
     }
     // In a real app, you'd save this mood to a backend or state management
-    console.log('Mood logged:', selectedMood);
+    console.log('Mood shared:', selectedMood);
     toast({
-      title: "Mood Logged!",
-      description: `You've logged your mood as ${moods.find(m => m.value === selectedMood)?.label || selectedMood}.`,
+      title: "Mood Shared!",
+      description: `Thanks for sharing that you're feeling ${moods.find(m => m.value === selectedMood)?.label || selectedMood}.`,
     });
     setSelectedMood(undefined); // Reset after submission
   };
@@ -45,7 +46,7 @@ export default function MoodTracker() {
       <CardHeader>
         <CardTitle className="text-2xl text-center">How are you feeling today?</CardTitle>
         <CardDescription className="text-center">
-          Tracking your mood can help you understand yourself better.
+          Sharing your mood can help you understand yourself better.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,7 +71,7 @@ export default function MoodTracker() {
               </Label>
             ))}
           </RadioGroup>
-          <Button type="submit" className="w-full">Log Mood</Button>
+          <Button type="submit" className="w-full">Share how you're feeling</Button>
         </form>
       </CardContent>
     </Card>

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowRight, BarChart3, BookOpen, MessageSquareHeart, Loader2 } from 'lucide-react';
+import { ArrowRight, BookOpen, MessageSquareHeart, Loader2, Wind } from 'lucide-react';
 import DailyQuoteCard from '@/components/daily-quote-card';
 import MoodTracker from '@/components/mood-tracker';
 import { Button } from '@/components/ui/button';
@@ -15,14 +15,15 @@ import { useState, useEffect, type FormEvent } from 'react';
 export default function HomePage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingName, setIsLoadingName] = useState<boolean>(true);
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const storedName = localStorage.getItem('userName');
     if (storedName) {
       setUserName(storedName);
     }
-    setIsLoading(false);
+    setIsLoadingName(false);
   }, []);
 
   const handleNameSubmit = (event: FormEvent) => {
@@ -31,11 +32,15 @@ export default function HomePage() {
     if (trimmedName) {
       localStorage.setItem('userName', trimmedName);
       setUserName(trimmedName);
-      setNameInput(""); // Clear input after submission
+      setNameInput(""); 
+      setIsAppLoading(true);
+      setTimeout(() => {
+        setIsAppLoading(false);
+      }, 1500);
     }
   };
 
-  if (isLoading) {
+  if (isLoadingName) {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -75,6 +80,16 @@ export default function HomePage() {
     );
   }
 
+  if (isAppLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center min-h-[calc(100vh-200px)] text-center">
+        <Wind className="h-16 w-16 text-primary mb-6 animate-pulse" />
+        <p className="text-2xl font-semibold text-foreground mb-2">Connecting to Aatme...</p>
+        <p className="text-lg italic text-muted-foreground">"'This time will pass.' - Shri Krishna"</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       <section className="text-center py-12 bg-card rounded-xl shadow-lg">
@@ -85,7 +100,7 @@ export default function HomePage() {
          Welcome to Aatme
         </p>
         <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-          Your compassionate companion for navigating life's challenges. We offer personalized guidance, inspiring stories, and a space to reflect.
+          Your compassionate companion for navigating life's challenges. We offer friendly advice, inspiring stories, and a space to reflect.
         </p>
         <div className="mt-10">
           <DailyQuoteCard />
@@ -101,7 +116,7 @@ export default function HomePage() {
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
               <MessageSquareHeart className="w-8 h-8 text-primary" />
-              <CardTitle className="text-2xl">Personalized Guidance</CardTitle>
+              <CardTitle className="text-2xl">Friendly Chat</CardTitle>
             </div>
             <CardDescription>
               Receive AI-driven advice tailored to your career, financial, and relationship concerns, with cultural sensitivity for Indian users.
@@ -110,14 +125,14 @@ export default function HomePage() {
           <CardContent>
             <Image 
               src="https://placehold.co/600x400.png" 
-              alt="Personalized Guidance illustration" 
+              alt="Friendly Chat illustration" 
               width={600} 
               height={400} 
               className="rounded-md mb-4 object-cover w-full h-48"
-              data-ai-hint="guidance support" 
+              data-ai-hint="support conversation" 
             />
             <Button asChild className="w-full">
-              <Link href="/guidance">Get Guidance <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link href="/guidance">Let's Chat <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardContent>
         </Card>
