@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Users, Mail, MapPin, Brain } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
+// Image import removed
 
 export default function AboutPage() {
   return (
@@ -21,16 +21,7 @@ export default function AboutPage() {
           </div>
         </CardHeader>
         <CardContent className="p-6 md:p-8 space-y-6">
-          <div className="text-center">
-            <Image
-              src="https://placehold.co/600x300.png"
-              alt="Team or abstract representation"
-              width={600}
-              height={300}
-              className="rounded-lg mb-6 object-cover w-full"
-              data-ai-hint="team collaboration"
-            />
-          </div>
+          {/* Image component removed from here */}
           <p className="text-lg text-foreground leading-relaxed">
             Aatme was born from the experiences of two enthusiasts who, like many, faced their own share of life's challenges. We realized the profound need for a supportive, non-judgmental space where individuals could find understanding and a fresh perspective.
           </p>
