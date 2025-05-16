@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { quotes, type Quote } from '@/lib/quotes';
 import { Zap } from 'lucide-react';
-// Button import removed as it's no longer used directly here.
+// Button import and RefreshCw icon import are removed as the button is no longer used.
 
 export default function DailyQuoteCard() {
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -48,6 +48,7 @@ export default function DailyQuoteCard() {
       </CardContent>
       <CardFooter className="p-6 pt-0 flex flex-col items-center">
         <p className="text-sm text-muted-foreground mt-2">- {quote.author}</p>
+        {/* "Another Thought" button has been removed from here */}
       </CardFooter>
     </Card>
   );
