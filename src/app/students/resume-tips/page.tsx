@@ -5,6 +5,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added this import
 import { CheckCircle, Contact, Edit3, FileText, LayoutGrid, Lightbulb, ListChecks, Sparkles, Star, Target, UserCheck, Zap } from 'lucide-react';
 
 const resumeTipsData = [
