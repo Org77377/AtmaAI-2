@@ -137,10 +137,6 @@ export default function InterviewPrepPage() {
 
     const { aiResponse, isInterviewOver, feedbackSummary, areasForImprovement, interviewScore, questionsAsked } = result.interviewData;
     
-    // If we used optimistic history, the user's message is already there.
-    // We just need to add the AI's response.
-    // If not (like in startInterview), we build from scratch or from result.updatedHistory
-    
     let newHistory: InterviewMessage[];
     if (optimisticHistory) {
       // User message is already in optimisticHistory. Add AI response.
@@ -224,7 +220,7 @@ export default function InterviewPrepPage() {
                             msg.role === 'user' ? "bg-primary/10 justify-end" : "bg-secondary justify-start"
                           )}
                         >
-                          <div className={cn("flex items-start gap-2 max-w-[85%]", msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}>
+                          <div className={cn("flex items-start gap-2", msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}> {/* Removed max-w-[85%] */}
                             {msg.role === 'interviewer' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                              <p className={cn("whitespace-pre-wrap", msg.role === 'user' ? "text-right" : "text-left")}>
                                 {msg.content}
@@ -235,7 +231,7 @@ export default function InterviewPrepPage() {
                       ))}
                        {isLoading && interviewStage === 'interviewing' && interviewHistory.length > 0 && (
                         <div className="flex justify-start">
-                            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary max-w-[85%]">
+                            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary"> {/* Removed max-w-[85%] */}
                                 <Sparkles className="h-5 w-5 text-primary flex-shrink-0 animate-pulse" />
                                 <p className="text-sm italic text-muted-foreground">AatmAI is typing...</p>
                             </div>
