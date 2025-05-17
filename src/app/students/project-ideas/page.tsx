@@ -45,6 +45,16 @@ function ProjectIdeasFormFieldsAndStatus({
 
   return (
     <>
+      {pending && (
+        <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
+          <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is brainstorming ideas for you...</AlertTitle>
+          <AlertDescription className="text-blue-600 dark:text-blue-400">
+            This may take a few moments. Please wait.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="fieldOfStudy" className="text-lg font-semibold">Field of Study</Label>
@@ -138,16 +148,6 @@ function ProjectIdeasFormFieldsAndStatus({
         </div>
       </div>
 
-
-      {pending && (
-        <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
-          <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is brainstorming project ideas...</AlertTitle>
-          <AlertDescription className="text-blue-600 dark:text-blue-400">
-            Please wait a moment. This can take a few seconds.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {!pending && state.message && state.isError && !state.fields && (
          <Alert variant="destructive" className="mt-6">
@@ -265,3 +265,5 @@ export default function ProjectIdeasGeneratorPage() {
     </div>
   );
 }
+
+    
