@@ -54,8 +54,7 @@ Domain: {{{domain}}}
 Interview History (Previous questions and answers):
 {{#if interviewHistory.length}}
   {{#each interviewHistory}}
-    {{#if (eq this.role "interviewer") }}Interviewer: {{this.content}}{{/if}}
-    {{#if (eq this.role "user") }}User: {{this.content}}{{/if}}
+    {{this.role}}: {{this.content}}
   {{/each}}
 {{else}}
   This is the beginning of the interview.
@@ -63,6 +62,8 @@ Interview History (Previous questions and answers):
 
 Current State:
 - Questions already asked by you (Interviewer): {{{questionsAsked}}}
+- User's current answer (to your last question, if any): {{#if currentAnswer}} {{{currentAnswer}}} {{else}} (No answer provided yet for this turn) {{/if}}
+
 
 Instructions:
 1.  If 'questionsAsked' is 0 (this is the start of the interview):
@@ -70,27 +71,29 @@ Instructions:
     *   State the domain you are interviewing for.
     *   Ask the first relevant technical or behavioral question for the '{{{domain}}}' role.
     *   Set 'isInterviewOver' to false.
-    *   Increment 'questionsAsked' by 1 for the output.
     *   Set 'aiResponse' to your introduction and first question.
-2.  If 'questionsAsked' is less than ${MAX_QUESTIONS} (and greater than 0):
-    *   The user has provided '{{currentAnswer}}' for your previous question.
+    *   Set 'questionsAsked' to 1 for the output.
+2.  If 'questionsAsked' is greater than 0 and less than ${MAX_QUESTIONS}:
+    *   The user has provided '{{{currentAnswer}}}' for your previous question.
     *   Briefly acknowledge their answer if appropriate (e.g., "Okay, regarding your point on X...").
-    *   Ask the NEXT relevant technical or behavioral question for the '{{{domain}}}' role. Ensure it's different from previous questions.
+    *   Ask the NEXT relevant technical or behavioral question for the '{{{domain}}}' role. Ensure it's different from previous questions recorded in the Interview History.
     *   Set 'isInterviewOver' to false.
-    *   Increment 'questionsAsked' by 1 for the output.
     *   Set 'aiResponse' to your acknowledgement (optional) and the next question.
+    *   Increment the input 'questionsAsked' by 1 for the output 'questionsAsked'.
 3.  If 'questionsAsked' is equal to ${MAX_QUESTIONS}:
-    *   The user has provided '{{currentAnswer}}' for your final question.
+    *   The user has provided '{{{currentAnswer}}}' for your final question.
     *   This is the end of the interview.
     *   Provide an overall 'feedbackSummary' based on ALL the user's answers in the 'interviewHistory' and their '{{currentAnswer}}'. Be constructive and specific.
     *   List 2-3 key 'areasForImprovement' as an array of strings.
     *   Provide an 'interviewScore' (0-100) based on their overall performance.
     *   Set 'isInterviewOver' to true.
     *   Set 'aiResponse' to a concluding remark (e.g., "That concludes our mock interview. Here's my feedback:").
-    *   Keep 'questionsAsked' as ${MAX_QUESTIONS} for the output.
+    *   Set 'questionsAsked' to ${MAX_QUESTIONS} for the output.
 
 Keep your questions and feedback professional, clear, and relevant to the specified domain. Your primary goal is to help the user practice and improve.
 Do not ask for personal information. Focus on skills, experience (hypothetical if needed), problem-solving, and behavioral aspects relevant to the domain.
+Ensure the 'questionsAsked' output field always reflects the number of questions the AI (you) has asked *after* the current turn.
+If providing feedback, ensure 'feedbackSummary', 'areasForImprovement', and 'interviewScore' are populated. If asking a question, these fields should be omitted or empty.
 `,
 });
 
@@ -101,33 +104,24 @@ const interviewPrepFlow = ai.defineFlow(
     outputSchema: InterviewPrepOutputSchema, // Uses local schema
   },
   async (input: InterviewPrepInput) => {
-    // Simple logic to manage questionsAsked for the prompt, the AI will be guided by this.
-    let nextQuestionsAsked = input.questionsAsked;
-    if (input.questionsAsked < MAX_QUESTIONS && input.currentAnswer !== '') { // if it's not the start and user provided an answer
-        // The AI will ask a question, so this will be the new count.
-    } else if (input.questionsAsked === 0 && input.currentAnswer === '') {
-        // Start of interview, AI will ask first question.
-    }
-
-
     const {output} = await prompt(input);
     if (!output) {
       console.error("AI prompt 'interviewPrepPrompt' did not return a valid output.");
       throw new Error('AI failed to generate a valid response for the interview.');
     }
     
-    // The AI's output should contain the updated questionsAsked.
-    // If not, we ensure it's at least what was input or incremented.
+    // Ensure questionsAsked is correctly incremented or set by the AI's output
+    // If the AI doesn't provide it, make a best guess based on the logic.
+    // This is a fallback, the prompt should guide the AI to set it correctly.
     if (output.questionsAsked === undefined) {
-        if (input.questionsAsked < MAX_QUESTIONS && input.currentAnswer !== '') {
-            output.questionsAsked = input.questionsAsked + 1;
-        } else if (input.questionsAsked === 0 && input.currentAnswer === '') {
-             output.questionsAsked = 1;
+        if (input.questionsAsked === 0) {
+            output.questionsAsked = 1; // AI asked first question
+        } else if (input.questionsAsked < MAX_QUESTIONS) {
+            output.questionsAsked = input.questionsAsked + 1; // AI asked another question
         } else {
-            output.questionsAsked = input.questionsAsked;
+            output.questionsAsked = MAX_QUESTIONS; // Interview finished
         }
     }
-
 
     return output;
   }
