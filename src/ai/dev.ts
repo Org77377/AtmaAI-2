@@ -7,4 +7,5 @@ import '@/ai/flows/curate-inspiring-stories.ts';
 import '@/ai/flows/generate-student-notes-flow.ts';
 import '@/ai/flows/generate-project-ideas-flow.ts';
 import '@/ai/flows/generate-project-guidance-flow.ts';
-import '@/ai/flows/generate-project-report-flow.ts'; // Added new flow
+import '@/ai/flows/generate-project-report-flow.ts';
+import '@/ai/flows/interview-prep-flow.ts'; // Added new interview prep flow

@@ -1,9 +1,8 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NotebookText, Lightbulb, FileText, Users, ScrollText, Briefcase, Bell, GraduationCap, ArrowRight } from 'lucide-react';
+import { NotebookText, Lightbulb, FileText, Users, ScrollText, Briefcase, Bell, GraduationCap, ArrowRight, Brain } from 'lucide-react';
 import Link from 'next/link';
 
 const studentFeatures = [
@@ -26,14 +25,14 @@ const studentFeatures = [
     description: "Get assistance in structuring and writing your project reports.", 
     icon: <FileText className="w-10 h-10 text-green-500" />,
     color: "green",
-    href: "/students/project-report" // Updated href
+    href: "/students/project-report"
   },
   { 
     title: "Interview Prep", 
-    description: "Practice common interview questions and get tips for success.", 
-    icon: <Users className="w-10 h-10 text-purple-500" />,
+    description: "Practice common interview questions and get tips for success with an AI interviewer.", 
+    icon: <Brain className="w-10 h-10 text-purple-500" />, // Changed icon
     color: "purple",
-    href: "#" // Placeholder for future link
+    href: "/students/interview-prep" // Updated href
   },
   { 
     title: "Resume Building Tips", 
