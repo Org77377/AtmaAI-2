@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NotebookText, Lightbulb, FileText, Users, ScrollText, Briefcase, Bell, GraduationCap, ArrowRight, Brain, Cpu } from 'lucide-react';
+import { NotebookText, Lightbulb, FileText, Users, ScrollText, Briefcase, Bell, GraduationCap, ArrowRight, Brain, Cpu, GitFork } from 'lucide-react';
 import Link from 'next/link';
 
 const studentFeatures = [
@@ -47,21 +47,28 @@ const studentFeatures = [
     description: "Discover AI-powered tools that can help with research, writing, and learning.",
     icon: <Cpu className="w-10 h-10 text-cyan-500" />,
     color: "cyan",
-    href: "/students/ai-tools" // Updated link
+    href: "/students/ai-tools"
+  },
+  {
+    title: "Roadmap Generator",
+    description: "Create personalized learning roadmaps for new skills or subjects.",
+    icon: <GitFork className="w-10 h-10 text-orange-500" />,
+    color: "orange",
+    href: "#"
   },
   {
     title: "Job Search for Freshers",
     description: "Find resources and strategies for your first job hunt (Feature Coming Soon).",
     icon: <Briefcase className="w-10 h-10 text-indigo-500" />,
     color: "indigo",
-    href: "#" // Placeholder for future link
+    href: "#"
   },
   {
     title: "Exam Notifications & Prep",
     description: "Stay updated on exam schedules and get preparation guidance (Feature Coming Soon).",
     icon: <Bell className="w-10 h-10 text-pink-500" />,
     color: "pink",
-    href: "#" // Placeholder for future link
+    href: "#"
   },
 ];
 
@@ -101,11 +108,11 @@ export default function StudentSuccessHubPage() {
                     asChild
                     variant="ghost"
                     className={`w-full justify-start text-${feature.color}-500 hover:text-${feature.color}-600 hover:bg-${feature.color}-500/10`}
-                    disabled={feature.href === "#" && feature.title !== "Useful AI Tools"} // Enable button for Useful AI Tools
+                    disabled={feature.href === "#"}
                   >
                     <Link href={feature.href || "#"}>
-                      {(feature.href === "#" && feature.title !== "Useful AI Tools") ? "Coming Soon" : "Explore"}
-                      {(feature.href !== "#" || feature.title === "Useful AI Tools" && feature.href !== "#") && <ArrowRight className="ml-2 h-4 w-4" />}
+                      {feature.href === "#" ? "Coming Soon" : "Explore"}
+                      {feature.href !== "#" && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Link>
                   </Button>
                 </div>
