@@ -6,6 +6,12 @@ import {
   type GenerateProjectIdeasInput,
   type GenerateProjectIdeasOutput,
 } from '@/ai/flows/generate-project-ideas-flow';
+import {
+  generateProjectGuidance,
+  type GenerateProjectGuidanceInput,
+  type GenerateProjectGuidanceOutput,
+  GenerateProjectGuidanceInputSchema,
+} from '@/ai/flows/generate-project-guidance-flow';
 import { z } from 'zod';
 
 export type ProjectIdeasFormState = {
@@ -16,7 +22,6 @@ export type ProjectIdeasFormState = {
   inputSubmitted?: GenerateProjectIdeasInput;
 };
 
-// Re-define schema here for server-side validation, matching the flow's input schema
 const projectIdeasFormSchema = z.object({
   fieldOfStudy: z
     .string()
@@ -36,10 +41,10 @@ const projectIdeasFormSchema = z.object({
     .default('any'),
   additionalContext: z
     .string()
+    .max(500, 'Additional context is too long. Please keep it under 500 characters.')
     .optional()
     .default('')
-    .transform(val => val || '') // Ensure empty string if null/undefined
-    .refine(val => val.length <= 500, { message: 'Additional context is too long. Please keep it under 500 characters.'}),
+    .transform(val => val || ''), // Ensure empty string if null/undefined
 });
 
 
@@ -69,7 +74,7 @@ export async function handleGenerateProjectIdeas(
       message: 'Invalid form data. Please check the fields below.',
       fields: fieldErrors,
       isError: true,
-      inputSubmitted: rawFormData as GenerateProjectIdeasInput, // Cast for UI display
+      inputSubmitted: rawFormData as GenerateProjectIdeasInput,
     };
   }
 
@@ -80,7 +85,7 @@ export async function handleGenerateProjectIdeas(
     if (!result.ideas || result.ideas.length === 0) {
         return {
             message: "AatmAI couldn't find specific project ideas for your criteria. Try broadening your search or rephrasing your interests.",
-            isError: false, // Not a technical error, but no results
+            isError: false, 
             ideas: [],
             inputSubmitted: inputForAI,
         };
@@ -107,6 +112,57 @@ export async function handleGenerateProjectIdeas(
       message: errorMessage,
       isError: true,
       inputSubmitted: inputForAI,
+    };
+  }
+}
+
+// New types and action for project guidance
+export type ProjectGuidanceRequestState = {
+  message?: string;
+  guidance?: GenerateProjectGuidanceOutput;
+  isError?: boolean;
+  projectTitle?: string;
+};
+
+export async function handleGenerateProjectGuidance(
+  input: GenerateProjectGuidanceInput
+): Promise<ProjectGuidanceRequestState> {
+  
+  const validatedFields = GenerateProjectGuidanceInputSchema.safeParse(input);
+
+  if (!validatedFields.success) {
+    console.error("Invalid input to handleGenerateProjectGuidance:", validatedFields.error.flatten().fieldErrors);
+    return {
+      message: 'Invalid project details provided for guidance. Title and description are required.',
+      isError: true,
+      projectTitle: input.projectTitle,
+    };
+  }
+
+  try {
+    const result = await generateProjectGuidance(validatedFields.data);
+    return {
+      message: 'Project guidance generated successfully!',
+      guidance: result,
+      isError: false,
+      projectTitle: validatedFields.data.projectTitle,
+    };
+  } catch (error: any) {
+    console.error('Detailed error in handleGenerateProjectGuidance:', error);
+    let errorMessage = 'Failed to generate project guidance. AatmAI might be busy or there was an issue.';
+     if (error && typeof error.message === 'string') {
+      if (error.message.toLowerCase().includes('overloaded') || error.message.toLowerCase().includes('rate limit')) {
+        errorMessage = "AatmAI's servers are currently busy generating guidance. Please try again in a few moments.";
+      } else if (error.message.includes('AI failed to generate valid project guidance')) {
+        errorMessage = "AatmAI had trouble generating specific guidance for this project idea. Please try again.";
+      } else {
+        errorMessage = error.message.length < 150 ? error.message : errorMessage;
+      }
+    }
+    return {
+      message: errorMessage,
+      isError: true,
+      projectTitle: validatedFields.data.projectTitle,
     };
   }
 }

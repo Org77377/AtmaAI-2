@@ -11,10 +11,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { handleGenerateProjectIdeas, type ProjectIdeasFormState } from './actions';
+import { handleGenerateProjectIdeas, handleGenerateProjectGuidance, type ProjectIdeasFormState, type ProjectGuidanceRequestState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Lightbulb, Sparkles, Info, FileText } from 'lucide-react'; // Ensured Loader2 and Sparkles are imported
-import type { GenerateProjectIdeasInput } from '@/ai/flows/generate-project-ideas-flow';
+import { Loader2, AlertTriangle, Lightbulb, Sparkles, Info, FileText, HelpCircle, Wand2 } from 'lucide-react';
+import type { GenerateProjectIdeasInput, GenerateProjectIdeasOutput } from '@/ai/flows/generate-project-ideas-flow';
+import type { GenerateProjectGuidanceOutput } from '@/ai/flows/generate-project-guidance-flow';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+type IdeaType = NonNullable<GenerateProjectIdeasOutput['ideas']>[0];
 
 const initialState: ProjectIdeasFormState = {
   message: '',
@@ -179,6 +184,12 @@ export default function ProjectIdeasGeneratorPage() {
     initialState.inputSubmitted || {}
   );
 
+  const [selectedIdeaForGuidance, setSelectedIdeaForGuidance] = useState<IdeaType | null>(null);
+  const [isGuidanceLoading, setIsGuidanceLoading] = useState(false);
+  const [guidanceResult, setGuidanceResult] = useState<GenerateProjectGuidanceOutput | null>(null);
+  const [guidanceError, setGuidanceError] = useState<string | null>(null);
+  const [isGuidanceDialogOpen, setIsGuidanceDialogOpen] = useState(false);
+
   useEffect(() => {
     if (state.message && !state.isError && state.ideas && state.ideas.length > 0) {
       toast({
@@ -205,6 +216,33 @@ export default function ProjectIdeasGeneratorPage() {
   const handleInputChange = (field: keyof GenerateProjectIdeasInput, value: string) => {
     setCurrentInput(prev => ({ ...prev, [field]: value }));
   };
+
+  const fetchProjectGuidance = async (idea: IdeaType) => {
+    setSelectedIdeaForGuidance(idea);
+    setIsGuidanceLoading(true);
+    setGuidanceResult(null);
+    setGuidanceError(null);
+    setIsGuidanceDialogOpen(true);
+
+    try {
+        const result = await handleGenerateProjectGuidance({
+        projectTitle: idea.title,
+        projectDescription: idea.description,
+        });
+
+        if (result.isError || !result.guidance) {
+        setGuidanceError(result.message || 'Failed to load guidance.');
+        } else {
+        setGuidanceResult(result.guidance);
+        }
+    } catch (error) {
+        console.error("Error fetching project guidance:", error);
+        setGuidanceError("An unexpected error occurred while fetching guidance.");
+    } finally {
+        setIsGuidanceLoading(false);
+    }
+  };
+
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -245,7 +283,7 @@ export default function ProjectIdeasGeneratorPage() {
                          <p className="text-sm text-muted-foreground italic">Suitability: {idea.suitability}</p>
                     )}
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex flex-wrap gap-2">
                         <span className="text-sm font-medium">Keywords:</span>
                         {idea.keywords.map((keyword, kwIndex) => (
@@ -254,6 +292,20 @@ export default function ProjectIdeasGeneratorPage() {
                             </span>
                         ))}
                     </div>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => fetchProjectGuidance(idea)}
+                        disabled={isGuidanceLoading && selectedIdeaForGuidance?.title === idea.title}
+                        className="w-full sm:w-auto"
+                    >
+                        {isGuidanceLoading && selectedIdeaForGuidance?.title === idea.title ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Wand2 className="mr-2 h-4 w-4" />
+                        )}
+                        Get Guidance
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
@@ -271,7 +323,69 @@ export default function ProjectIdeasGeneratorPage() {
           )}
         </CardContent>
       </Card>
+
+      {selectedIdeaForGuidance && (
+        <Dialog open={isGuidanceDialogOpen} onOpenChange={setIsGuidanceDialogOpen}>
+            <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+                <DialogTitle>Guidance for: {selectedIdeaForGuidance.title}</DialogTitle>
+                <DialogDescription>
+                Here are some suggestions to help you get started with "{selectedIdeaForGuidance.title}".
+                </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] p-1 pr-2"> {/* Added padding-right for scrollbar */}
+                {isGuidanceLoading && (
+                <div className="flex flex-col items-center justify-center py-10">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                    <p className="text-muted-foreground">AatmAI is preparing your guidance...</p>
+                </div>
+                )}
+                {guidanceError && !isGuidanceLoading && (
+                <Alert variant="destructive" className="my-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Error Loading Guidance</AlertTitle>
+                    <AlertDescription>{guidanceError}</AlertDescription>
+                </Alert>
+                )}
+                {guidanceResult && !isGuidanceLoading && !guidanceError && (
+                <div className="space-y-6 py-4 text-sm">
+                    <div>
+                    <h4 className="font-semibold text-md text-primary mb-2">Suggested Tech Stack:</h4>
+                    {guidanceResult.suggestedTechStack.length > 0 ? (
+                        <ul className="list-disc pl-5 space-y-1 text-foreground">
+                        {guidanceResult.suggestedTechStack.map((tech, idx) => <li key={idx}>{tech}</li>)}
+                        </ul>
+                    ) : <p className="text-muted-foreground">No specific tech stack suggestions were generated for this idea.</p>}
+                    </div>
+                    <div>
+                    <h4 className="font-semibold text-md text-primary mb-2">High-Level Steps:</h4>
+                    {guidanceResult.highLevelSteps.length > 0 ? (
+                    <ol className="list-decimal pl-5 space-y-1 text-foreground">
+                        {guidanceResult.highLevelSteps.map((step, idx) => <li key={idx}>{step}</li>)}
+                    </ol>
+                    ) : <p className="text-muted-foreground">No specific implementation steps were generated.</p>}
+                    </div>
+                    {guidanceResult.keyConsiderations && guidanceResult.keyConsiderations.length > 0 && (
+                    <div>
+                        <h4 className="font-semibold text-md text-primary mb-2">Key Considerations:</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-foreground">
+                        {guidanceResult.keyConsiderations.map((consideration, idx) => <li key={idx}>{consideration}</li>)}
+                        </ul>
+                    </div>
+                    )}
+                </div>
+                )}
+            </ScrollArea>
+            <DialogFooter className="sm:justify-start mt-2"> {/* Added margin-top */}
+                <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                    Close
+                </Button>
+                </DialogClose>
+            </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        )}
     </div>
   );
 }
-    
