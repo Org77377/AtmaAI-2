@@ -143,11 +143,14 @@ export default function PersonalizedGuidanceForm() {
         const availableVoices = window.speechSynthesis.getVoices();
         if (availableVoices.length > 0) {
           setVoices(availableVoices);
-          window.speechSynthesis.onvoiceschanged = null; 
+          // Once voices are loaded, no need to listen for this event anymore for this session
+          // unless voices can change dynamically in a way that requires re-querying.
+          // For simplicity, we can remove it after first successful load.
+          // window.speechSynthesis.onvoiceschanged = null; 
         }
       };
-      loadVoices();
-      if (window.speechSynthesis.getVoices().length === 0) { 
+      loadVoices(); // Try to load immediately
+      if (window.speechSynthesis.getVoices().length === 0) { // If not loaded yet, set up listener
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
     } else {
@@ -169,6 +172,7 @@ export default function PersonalizedGuidanceForm() {
       }
     }
     return () => {
+      // Cleanup: cancel any ongoing speech and remove listeners when component unmounts
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = null;
         window.speechSynthesis.cancel(); 
@@ -186,8 +190,6 @@ export default function PersonalizedGuidanceForm() {
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
       setCurrentIssue('');
-      // formRef.current?.reset(); // Reset profile and mood fields if they were visible - this line caused an issue when these fields are hidden.
-      // Instead of resetting the whole form, just ensure the issue field is cleared, which is already done.
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -216,19 +218,20 @@ export default function PersonalizedGuidanceForm() {
       return;
     }
 
+    // If this message is already speaking, stop it.
     if (speakingMessageKey === messageKey) { 
       window.speechSynthesis.cancel();
       setSpeakingMessageKey(null);
       return;
     }
 
+    // If any other message is speaking, cancel it first.
     window.speechSynthesis.cancel(); 
 
     const utterance = new SpeechSynthesisUtterance(text);
 
     let selectedVoice: SpeechSynthesisVoice | null = null;
 
-    // 1. Prioritize 'en-IN' female voices if available
     const enInFemaleVoices = voices.filter(
       (voice) => voice.lang.toLowerCase() === 'en-in' &&
                   (voice.name.toLowerCase().includes('female') || (voice as any).gender?.toLowerCase() === 'female')
@@ -237,45 +240,29 @@ export default function PersonalizedGuidanceForm() {
       selectedVoice = enInFemaleVoices.find(v => v.localService) || enInFemaleVoices[0];
     }
 
-    // 2. If not, try specific known high-quality female English voices
     if (!selectedVoice) {
       const knownFemaleVoiceNames = [
-        "Microsoft Zira Desktop - English (United States)",
-        "Samantha", 
-        "Google UK English Female",
-        "Google US English Female", 
-        "Tessa", 
-        "Allison", 
-        "Susan", // Another common Apple voice
-        "Moira", // Apple Ireland
+        "Microsoft Zira Desktop - English (United States)", "Microsoft Zira - English (United States)", // Common Windows
+        "Samantha", "Karen", "Tessa", "Moira", "Susan", // Common Apple voices
+        "Google UK English Female", "Google US English", // Google voices (name might vary slightly)
+        "Female", // Generic term some browsers might use
       ];
       const preferredFemaleEnglishVoices = voices.filter(voice =>
         voice.lang.startsWith('en') &&
-        knownFemaleVoiceNames.some(name => voice.name.includes(name))
+        ( (voice.name.toLowerCase().includes('female') || (voice as any).gender?.toLowerCase() === 'female') ||
+          knownFemaleVoiceNames.some(name => voice.name.toLowerCase().includes(name.toLowerCase())) )
       );
       if (preferredFemaleEnglishVoices.length > 0) {
         selectedVoice = preferredFemaleEnglishVoices.find(v => v.localService) || preferredFemaleEnglishVoices[0];
       }
     }
-
-    // 3. If still not found, try any voice with "female" in its name and is English
-    if (!selectedVoice) {
-      const genericFemaleEnglishVoices = voices.filter(voice =>
-        voice.lang.startsWith('en') &&
-        (voice.name.toLowerCase().includes('female') || (voice as any).gender?.toLowerCase() === 'female')
-      );
-      if (genericFemaleEnglishVoices.length > 0) {
-        selectedVoice = genericFemaleEnglishVoices.find(v => v.localService) || genericFemaleEnglishVoices[0];
-      }
-    }
-
-    // 4. Fallback: Use any English voice if no female voice could be specifically identified
+    
     if (!selectedVoice) {
         const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
         if (englishVoices.length > 0) {
             selectedVoice = englishVoices.find(v => v.localService) || 
-                            englishVoices.find(v => v.name.includes("Google")) || // Prefer Google voices
-                            englishVoices.find(v => v.name.includes("Microsoft")) || // Then Microsoft
+                            englishVoices.find(v => v.name.toLowerCase().includes("google")) || 
+                            englishVoices.find(v => v.name.toLowerCase().includes("microsoft")) || 
                             englishVoices[0];
         }
     }
@@ -288,16 +275,24 @@ export default function PersonalizedGuidanceForm() {
       setSpeakingMessageKey(messageKey);
     };
     utterance.onend = () => {
-      setSpeakingMessageKey(null);
+      // Check if this specific message was the one supposed to be ending
+      setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
     };
-    utterance.onerror = (event) => {
-      console.error("Speech synthesis error event:", event, "Error details:", (event as any).error || "N/A");
-      setSpeakingMessageKey(null);
-      toast({
-        title: "Speech Error",
-        description: "Could not play the audio.",
-        variant: "destructive",
-      });
+    utterance.onerror = (event: SpeechSynthesisErrorEvent) => { // Explicitly type event
+      const errorReason = (event as any).error || event.type; // event.type can be 'error'
+      console.error("Speech synthesis error event:", event, "Error details:", errorReason);
+      
+      // Only reset speakingMessageKey if this specific utterance was the one marked as speaking
+      setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
+
+      // Do not show toast for "interrupted" or "canceled" errors as they are often due to user action (e.g. clicking stop or another speak button)
+      if (errorReason !== 'interrupted' && errorReason !== 'canceled') {
+        toast({
+          title: "Speech Error",
+          description: "Could not play the audio. Your browser might have encountered an issue.",
+          variant: "destructive",
+        });
+      }
     };
 
     window.speechSynthesis.speak(utterance);
@@ -330,11 +325,11 @@ export default function PersonalizedGuidanceForm() {
                     <div
                       key={messageKey}
                       className={cn(
-                        "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full",
+                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full", // Removed items-start, gap-2 for direct stacking
                         msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
                       )}
                     >
-                      <div className="flex items-center gap-2 w-full break-words">
+                      <div className="flex items-center gap-2 w-full break-words"> {/* Added break-words */}
                           {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
                           <p className={cn(
                               "whitespace-pre-wrap flex-1",
