@@ -26,8 +26,17 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-      Generate Project Ideas
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Generating...
+        </>
+      ) : (
+        <>
+          <Sparkles className="mr-2 h-4 w-4" />
+          Generate Project Ideas
+        </>
+      )}
     </Button>
   );
 }
@@ -48,7 +57,7 @@ function ProjectIdeasFormFieldsAndStatus({
       {pending && (
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is brainstorming ideas for you...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is brainstorming ideas...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             This may take a few moments. Please wait.
           </AlertDescription>
@@ -177,7 +186,7 @@ export default function ProjectIdeasGeneratorPage() {
         description: state.message,
       });
     } else if (state.message && !state.isError && (!state.ideas || state.ideas.length === 0)) {
-      toast({ // Toast for no ideas found but no error
+      toast({ 
         title: 'No Specific Ideas Found',
         description: state.message || "AatmAI couldn't find specific project ideas for your criteria. Try broadening your search.",
       });
@@ -265,5 +274,4 @@ export default function ProjectIdeasGeneratorPage() {
     </div>
   );
 }
-
     
