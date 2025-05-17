@@ -100,25 +100,28 @@ function NotesFormFieldsAndStatus({
 
       {!pending && state.notes && !state.isError && (
         <Card className="mt-8 shadow-lg">
-            <CardHeader className="flex flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2">
-                <div className="flex-grow">
-                    <CardTitle className="text-2xl text-primary">
-                        {state.detailLevel === 'detailed' ? 'Detailed Explanation' : 'Concise Notes'} for "{state.topicSubmitted}"
-                    </CardTitle>
-                    <CardDescription>Review and use these notes for your study.</CardDescription>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center pt-2 sm:pt-0">
-                    {state.detailLevel === 'concise' && (
-                        <Button variant="outline" size="sm" onClick={handleExplainMore} disabled={pending} className="w-full sm:w-auto">
-                            <HelpCircle className="mr-2 h-4 w-4" />
-                            Explain More
-                        </Button>
-                    )}
-                    <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending} className="w-full sm:w-auto">
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy Notes
-                    </Button>
-                </div>
+            <CardHeader className="p-6"> {/* Default CardHeader padding */}
+              {/* Button container - appears above the title */}
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end sm:items-center mb-4">
+                {state.detailLevel === 'concise' && (
+                  <Button variant="outline" size="sm" onClick={handleExplainMore} disabled={pending} className="w-full sm:w-auto">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Explain More
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending} className="w-full sm:w-auto">
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy Notes
+                </Button>
+              </div>
+
+              {/* Title and Description */}
+              <div>
+                <CardTitle className="text-2xl text-primary">
+                  {state.detailLevel === 'detailed' ? 'Detailed Explanation' : 'Concise Notes'} for "{state.topicSubmitted}"
+                </CardTitle>
+                <CardDescription>Review and use these notes for your study.</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
                 <pre className="whitespace-pre-wrap font-sans text-sm bg-muted p-4 rounded-md overflow-x-auto">
@@ -151,8 +154,8 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(''); 
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
+  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); 
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
 
   useEffect(() => {
     // Initialize from state on first load or after action completes
@@ -162,8 +165,9 @@ export default function StudentNotesGeneratorPage() {
     if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
         setCurrentDetailLevel(state.detailLevel);
     }
+  // Only depend on these specific state fields to avoid unnecessary re-runs
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.topicSubmitted, state.detailLevel]); // Only depend on these specific state fields
+  }, [state.topicSubmitted, state.detailLevel]); 
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -183,10 +187,15 @@ export default function StudentNotesGeneratorPage() {
   const handleExplainMore = () => {
     if (currentTopic) {
       setCurrentDetailLevel('detailed'); 
-      // Use a timeout to ensure the state update for currentDetailLevel (and thus the hidden input)
-      // has a chance to propagate before the form submission is triggered.
       setTimeout(() => {
-        formRef.current?.requestSubmit();
+        if (formRef.current) {
+          // Manually update the hidden input for detailLevel if it exists
+          const detailLevelInput = formRef.current.elements.namedItem('detailLevel') as HTMLInputElement | null;
+          if (detailLevelInput) {
+            detailLevelInput.value = 'detailed';
+          }
+          formRef.current.requestSubmit();
+        }
       }, 0);
     } else {
       toast({
@@ -225,3 +234,4 @@ export default function StudentNotesGeneratorPage() {
     </div>
   );
 }
+
