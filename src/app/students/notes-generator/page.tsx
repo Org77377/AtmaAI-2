@@ -151,8 +151,8 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(''); 
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
+  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); 
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -168,21 +168,20 @@ export default function StudentNotesGeneratorPage() {
       });
     }
     
-    // Update local state from form action state to preserve across re-renders if needed
-    if (state.topicSubmitted) {
-        setCurrentTopic(state.topicSubmitted);
+    if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
+      setCurrentTopic(state.topicSubmitted);
     }
-    if (state.detailLevel) {
-        setCurrentDetailLevel(state.detailLevel);
+    if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
+      setCurrentDetailLevel(state.detailLevel);
     }
 
-  }, [state, toast]);
+  // Removed currentTopic and currentDetailLevel from dependencies to prevent potential loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, toast]); 
   
   const handleExplainMore = () => {
     if (currentTopic) {
       setCurrentDetailLevel('detailed'); 
-      // Need a brief delay to ensure state update for currentDetailLevel reflects in hidden input
-      // before form submission.
       setTimeout(() => {
         formRef.current?.requestSubmit();
       }, 0);
