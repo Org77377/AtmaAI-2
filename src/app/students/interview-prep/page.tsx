@@ -220,7 +220,7 @@ export default function InterviewPrepPage() {
                             msg.role === 'user' ? "bg-primary/10 justify-end" : "bg-secondary justify-start"
                           )}
                         >
-                          <div className={cn("flex items-start gap-2", msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}> {/* Removed max-w-[85%] */}
+                          <div className={cn("flex items-start gap-2", msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}>
                             {msg.role === 'interviewer' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                              <p className={cn("whitespace-pre-wrap", msg.role === 'user' ? "text-right" : "text-left")}>
                                 {msg.content}
@@ -231,7 +231,7 @@ export default function InterviewPrepPage() {
                       ))}
                        {isLoading && interviewStage === 'interviewing' && interviewHistory.length > 0 && (
                         <div className="flex justify-start">
-                            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary"> {/* Removed max-w-[85%] */}
+                            <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary">
                                 <Sparkles className="h-5 w-5 text-primary flex-shrink-0 animate-pulse" />
                                 <p className="text-sm italic text-muted-foreground">AatmAI is typing...</p>
                             </div>
@@ -265,7 +265,7 @@ export default function InterviewPrepPage() {
                   <CardHeader>
                     <div className="flex items-center gap-2">
                         <Award className="w-6 h-6 text-primary" />
-                        <CardTitle className="text-xl text-primary">Interview Feedback & Score</CardTitle>
+                        <CardTitle className="text-xl text-primary">Interview Feedback &amp; Score</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -297,9 +297,9 @@ export default function InterviewPrepPage() {
                   </CardFooter>
                 </Card>
               )}
-               {interviewStage !== 'selectingDomain' && !isLoading && (
+               {!isLoading && (
                  <Button onClick={resetInterview} variant="ghost" className="w-full text-sm text-muted-foreground hover:text-primary">
-                    End Interview & Select New Domain
+                    End Interview &amp; Select New Domain
                 </Button>
                )}
             </div>
