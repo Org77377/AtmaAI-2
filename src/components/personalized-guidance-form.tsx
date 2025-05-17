@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateGuidance, type GuidanceFormState, type ChatMessage } from '@/app/guidance/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Info, Sparkles, Send, User, Volume2 } from 'lucide-react';
+import { Loader2, AlertTriangle, Info, Sparkles, Send, User, Volume2, StopCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -73,7 +73,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required={conversationHistoryLength === 0} 
+              required={conversationHistoryLength === 0}
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -109,12 +109,12 @@ function FormFieldsAndStatus({
         </Alert>
       )}
 
-      {!pending && message && isError && !fields && (
+      {!pending && state.message && state.isError && !fields && (
         <Alert variant="destructive" className="mt-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>An Error Occurred</AlertTitle>
           <AlertDescription>
-            {message}
+            {state.message}
           </AlertDescription>
         </Alert>
       )}
@@ -128,12 +128,14 @@ export default function PersonalizedGuidanceForm() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
   const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(true);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [speakingMessageKey, setSpeakingMessageKey] = useState<string | null>(null);
 
 
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
-  const [currentIssue, setCurrentIssue] = useState(''); 
+  const [currentIssue, setCurrentIssue] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -141,10 +143,14 @@ export default function PersonalizedGuidanceForm() {
         const availableVoices = window.speechSynthesis.getVoices();
         if (availableVoices.length > 0) {
           setVoices(availableVoices);
+          // Unsubscribe if voices are loaded, to prevent memory leaks if component unmounts
+          window.speechSynthesis.onvoiceschanged = null;
         }
       };
-      loadVoices(); // Initial attempt
-      window.speechSynthesis.onvoiceschanged = loadVoices; // Listen for changes
+      loadVoices();
+      if (window.speechSynthesis.getVoices().length === 0) { // If voices not immediately available
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
     } else {
       setSpeechSynthesisSupported(false);
     }
@@ -163,6 +169,13 @@ export default function PersonalizedGuidanceForm() {
         localStorage.removeItem('aatmAI-chat-history');
       }
     }
+     // Cleanup function to remove the event listener if the component unmounts
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = null;
+        window.speechSynthesis.cancel(); // Stop any speech on unmount
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -174,9 +187,7 @@ export default function PersonalizedGuidanceForm() {
         setConversationHistory(state.updatedConversationHistory);
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
-      setCurrentIssue(''); 
-      // Don't reset the entire formRef.current?.reset() if profile and mood are hidden
-      // as it might cause issues. Clearing currentIssue is sufficient.
+      setCurrentIssue('');
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -195,7 +206,7 @@ export default function PersonalizedGuidanceForm() {
     }
   }, [conversationHistory]);
 
-  const handleSpeak = (text: string) => {
+  const handleSpeak = (text: string, messageKey: string) => {
     if (!speechSynthesisSupported) {
       toast({
         title: "Speech Not Supported",
@@ -205,42 +216,50 @@ export default function PersonalizedGuidanceForm() {
       return;
     }
 
-    window.speechSynthesis.cancel(); // Stop any ongoing speech
+    if (speakingMessageKey === messageKey) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageKey(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel(); // Stop any other ongoing speech
 
     const utterance = new SpeechSynthesisUtterance(text);
 
-    // Attempt to find a more natural voice
     let selectedVoice = null;
     const preferredVoices = [
-      // More common, often natural-sounding voices (order matters for preference)
       "Google US English", "Microsoft Zira Desktop - English (United States)", "Microsoft David Desktop - English (United States)",
       "Samantha", "Alex", "Google UK English Female", "Google UK English Male",
     ];
-
-    // Prioritize local, English voices with preferred names
     const localVoices = voices.filter(voice => voice.lang.startsWith('en') && voice.localService);
     for (const name of preferredVoices) {
       selectedVoice = localVoices.find(voice => voice.name === name) || null;
       if (selectedVoice) break;
     }
-    // Fallback: any local English voice
-    if (!selectedVoice && localVoices.length > 0) {
-      selectedVoice = localVoices[0];
-    }
-    // Fallback: any English voice
+    if (!selectedVoice && localVoices.length > 0) selectedVoice = localVoices[0];
     if (!selectedVoice) {
       const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
       if (englishVoices.length > 0) {
           selectedVoice = englishVoices.find(voice => voice.name.includes("English")) || englishVoices[0];
       }
     }
-    
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-    }
-    // You can also adjust pitch and rate if desired:
-    // utterance.pitch = 1; // 0 to 2
-    // utterance.rate = 1; // 0.1 to 10
+    if (selectedVoice) utterance.voice = selectedVoice;
+
+    utterance.onstart = () => {
+      setSpeakingMessageKey(messageKey);
+    };
+    utterance.onend = () => {
+      setSpeakingMessageKey(null);
+    };
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+      setSpeakingMessageKey(null);
+      toast({
+        title: "Speech Error",
+        description: "Could not play the audio.",
+        variant: "destructive",
+      });
+    };
 
     window.speechSynthesis.speak(utterance);
   };
@@ -265,38 +284,42 @@ export default function PersonalizedGuidanceForm() {
           <CardContent>
             <ScrollArea className="h-[400px] w-full pr-4" ref={scrollAreaRef}>
               <div className="space-y-4">
-                {conversationHistory.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full", 
-                      msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
-                    )}
-                  >
-                    <div className="flex items-center gap-2 w-full break-words">
-                        {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
-                        <p className={cn(
-                            "whitespace-pre-wrap flex-1", 
-                            msg.role === 'user' ? "text-foreground" : "text-foreground"
-                          )}
-                        >
-                          {msg.content}
-                        </p>
-                        {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0" />}
+                {conversationHistory.map((msg, index) => {
+                  const messageKey = `msg-${index}`;
+                  const isCurrentlySpeaking = speakingMessageKey === messageKey;
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full",
+                        msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
+                      )}
+                    >
+                      <div className="flex items-center gap-2 w-full break-words">
+                          {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
+                          <p className={cn(
+                              "whitespace-pre-wrap flex-1",
+                              msg.role === 'user' ? "text-foreground" : "text-foreground"
+                            )}
+                          >
+                            {msg.content}
+                          </p>
+                          {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0" />}
+                      </div>
+                      {msg.role === 'model' && speechSynthesisSupported && (
+                          <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleSpeak(msg.content, messageKey)}
+                              className="h-6 w-6 p-1 self-start mt-1"
+                              aria-label={isCurrentlySpeaking ? "Stop speaking AatmAI's message" : "Speak AatmAI's message"}
+                          >
+                              {isCurrentlySpeaking ? <StopCircle className="h-4 w-4 text-destructive" /> : <Volume2 className="h-4 w-4 text-primary/80 hover:text-primary" />}
+                          </Button>
+                      )}
                     </div>
-                    {msg.role === 'model' && speechSynthesisSupported && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleSpeak(msg.content)}
-                            className="h-6 w-6 p-1 self-start mt-1"
-                            aria-label="Speak AatmAI's message"
-                        >
-                            <Volume2 className="h-4 w-4 text-primary/80 hover:text-primary" />
-                        </Button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
           </CardContent>
@@ -305,12 +328,14 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
-        {conversationHistory.length > 0 && (
+        {/* Profile and Mood fields are only submitted if it's the first message */}
+        {conversationHistory.length === 0 && (
           <>
-            <input type="hidden" name="profile" value={localStorage.getItem('aatmAI-userName') || "User"} />
-            <input type="hidden" name="mood" value="Continuing conversation" />
+            <input type="hidden" name="profile" value={typeof window !== 'undefined' ? localStorage.getItem('userNameAatmAI') || "User" : "User"} />
+            <input type="hidden" name="mood" value="Not specified by user for initial message" />
           </>
         )}
+
 
         <FormFieldsAndStatus
           fields={state.fields}
@@ -326,3 +351,4 @@ export default function PersonalizedGuidanceForm() {
     </div>
   );
 }
+
