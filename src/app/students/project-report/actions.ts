@@ -1,12 +1,13 @@
+
 'use server';
 
 import {
   generateProjectReport,
   type GenerateProjectReportInput,
   type GenerateProjectReportOutput,
-  GenerateProjectReportInputSchema, // Import for validation
+  // GenerateProjectReportInputSchema is no longer imported from the flow file
 } from '@/ai/flows/generate-project-report-flow';
-// Removed Zod import as schema is imported
+import { z } from 'zod'; // Import Zod
 
 export type ProjectReportFormState = {
   message?: string;
@@ -16,8 +17,19 @@ export type ProjectReportFormState = {
   inputSubmitted?: GenerateProjectReportInput;
 };
 
-// Use the imported GenerateProjectReportInputSchema for validation
-const projectReportFormSchema = GenerateProjectReportInputSchema;
+// Define the input schema locally for validation
+const projectReportFormSchema = z.object({
+  projectTopic: z
+    .string()
+    .min(5, 'Project topic must be at least 5 characters.')
+    .max(200, 'Project topic must be less than 200 characters.'),
+  techStackDetails: z
+    .string()
+    .min(10, 'Please provide some details about the technologies, tools, or methods used (at least 10 characters).')
+    .max(1000, 'Technology details must be less than 1000 characters.'),
+  reportType: z.enum(['simple', 'detailed']).default('simple'),
+});
+
 
 export async function handleGenerateProjectReport(
   prevState: ProjectReportFormState,

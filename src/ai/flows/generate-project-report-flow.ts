@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI agent that generates a project report based on user inputs.
@@ -10,7 +11,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateProjectReportInputSchema = z.object({
+// Schema is now local, not exported
+const GenerateProjectReportInputSchema = z.object({
   projectTopic: z
     .string()
     .min(5, 'Project topic must be at least 5 characters.')
@@ -25,7 +27,8 @@ export type GenerateProjectReportInput = z.infer<
   typeof GenerateProjectReportInputSchema
 >;
 
-export const GenerateProjectReportOutputSchema = z.object({
+// Schema is now local, not exported
+const GenerateProjectReportOutputSchema = z.object({
   reportContent: z.string().describe('The main content of the generated project report, structured with headings and paragraphs. Likely in Markdown format.'),
   references: z.string().optional().describe('A list of references or a bibliography section, if applicable. Could be a formatted string or Markdown list.'),
 });
@@ -41,8 +44,8 @@ export async function generateProjectReport(
 
 const prompt = ai.definePrompt({
   name: 'generateProjectReportPrompt',
-  input: {schema: GenerateProjectReportInputSchema},
-  output: {schema: GenerateProjectReportOutputSchema},
+  input: {schema: GenerateProjectReportInputSchema}, // Uses local schema
+  output: {schema: GenerateProjectReportOutputSchema}, // Uses local schema
   prompt: `You are an expert academic assistant specializing in creating project reports for students across various fields.
   The user will provide a project topic, details about the technology/tools/methods used, and a desired report type (simple or detailed).
 
@@ -84,8 +87,8 @@ const prompt = ai.definePrompt({
 const generateProjectReportFlow = ai.defineFlow(
   {
     name: 'generateProjectReportFlow',
-    inputSchema: GenerateProjectReportInputSchema,
-    outputSchema: GenerateProjectReportOutputSchema,
+    inputSchema: GenerateProjectReportInputSchema, // Uses local schema
+    outputSchema: GenerateProjectReportOutputSchema, // Uses local schema
   },
   async input => {
     const response = await prompt(input);
