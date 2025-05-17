@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateGuidance, type GuidanceFormState, type ChatMessage } from '@/app/guidance/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Info, Sparkles, Send, User, Bot } from 'lucide-react';
+import { Loader2, AlertTriangle, Info, Sparkles, Send, User } from 'lucide-react'; // Removed Bot, added Sparkles
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -36,12 +36,16 @@ function FormFieldsAndStatus({
   fields,
   isError,
   message,
-  conversationHistoryLength
+  conversationHistoryLength,
+  currentIssue,
+  setCurrentIssue
 }: {
   fields?: Record<string, string>;
   isError?: boolean;
   message?: string;
   conversationHistoryLength: number;
+  currentIssue: string;
+  setCurrentIssue: (issue: string) => void;
 }) {
   const { pending } = useFormStatus();
 
@@ -84,6 +88,8 @@ function FormFieldsAndStatus({
         <Textarea
           id="issue"
           name="issue"
+          value={currentIssue}
+          onChange={(e) => setCurrentIssue(e.target.value)}
           rows={conversationHistoryLength === 0 ? 5 : 3}
           placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. AatmAI is here to listen without judgment."
           className="mt-2"
@@ -118,12 +124,13 @@ function FormFieldsAndStatus({
 
 
 export default function PersonalizedGuidanceForm() {
-  const [state, formAction] = useActionState(handleGenerateGuidance, initialState); // Changed from useFormState
+  const [state, formAction] = useActionState(handleGenerateGuidance, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const [currentIssue, setCurrentIssue] = useState(''); // For the text area input
 
   useEffect(() => {
     const storedHistory = localStorage.getItem('aatmAI-chat-history');
@@ -143,23 +150,22 @@ export default function PersonalizedGuidanceForm() {
   }, []);
 
   useEffect(() => {
-    if (state.message) {
-      if (state.isError) {
-        toast({
-          title: "Error",
-          description: state.message,
-          variant: "destructive",
-        });
-      } else if (state.guidance) {
-         toast({
-          title: "AatmAI Responded!",
-        });
-        if(state.updatedConversationHistory){
-          setConversationHistory(state.updatedConversationHistory);
-          localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
-        }
-        formRef.current?.reset();
+    if (state.message && !state.isError && state.guidance) { // Ensure it's a successful response with guidance
+       toast({
+        title: "AatmAI Responded!",
+      });
+      if(state.updatedConversationHistory){
+        setConversationHistory(state.updatedConversationHistory);
+        localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
+      setCurrentIssue(''); // Clear the input field
+      // formRef.current?.reset(); // This might clear hidden fields too, which we don't want for conversationHistory
+    } else if (state.message && state.isError) {
+      toast({
+        title: "Error",
+        description: state.message,
+        variant: "destructive",
+      });
     }
   }, [state, toast]);
 
@@ -178,35 +184,35 @@ export default function PersonalizedGuidanceForm() {
         <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
         <AlertTitle className="font-semibold text-blue-700 dark:text-blue-300">Chat with AatmAI</AlertTitle>
         <AlertDescription className="text-blue-600 dark:text-blue-400">
-          AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences and our conversation. Your privacy is respected; no personal data or conversation history is stored on our servers.
+          AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences and our conversation. Your privacy is respected; no personal data or conversation history is stored on our servers beyond your current session on this device.
         </AlertDescription>
       </Alert>
 
       {conversationHistory.length > 0 && (
-        <Card className="bg-background/50">
+        <Card className="bg-background/50 border shadow-md">
           <CardHeader>
             <CardTitle className="text-lg text-primary">Our Conversation</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[200px] w-full pr-4" ref={scrollAreaRef}>
+            <ScrollArea className="h-[300px] w-full pr-4" ref={scrollAreaRef}> {/* Increased height */}
               <div className="space-y-4">
                 {conversationHistory.map((msg, index) => (
                   <div
                     key={index}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg shadow-sm",
-                      msg.role === 'user' ? "bg-primary/10 justify-end" : "bg-muted/50"
+                      "flex items-start gap-3 p-3 rounded-lg shadow-sm text-sm", // Added base text-sm
+                      msg.role === 'user' ? "bg-primary/10 justify-end ml-auto max-w-[85%]" : "bg-muted/60 mr-auto max-w-[85%]" // Adjusted alignment and max-width
                     )}
                   >
-                    {msg.role === 'model' && <Bot className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
+                    {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />} {/* Changed to Sparkles */}
                     <p className={cn(
-                        "text-sm whitespace-pre-wrap max-w-xs sm:max-w-md md:max-w-lg",
+                        "whitespace-pre-wrap", // Removed max-width here as it's on parent
                         msg.role === 'user' ? "text-right text-foreground" : "text-foreground"
                       )}
                     >
                       {msg.content}
                     </p>
-                    {msg.role === 'user' && <User className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
+                    {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                   </div>
                 ))}
               </div>
@@ -223,6 +229,8 @@ export default function PersonalizedGuidanceForm() {
           isError={state.isError}
           message={state.message}
           conversationHistoryLength={conversationHistory.length}
+          currentIssue={currentIssue}
+          setCurrentIssue={setCurrentIssue}
         />
 
         <SubmitButton />
