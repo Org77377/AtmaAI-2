@@ -34,7 +34,7 @@ function NotesFormFieldsAndStatus({
   currentTopic,
   setCurrentTopic,
   handleExplainMore,
-  currentDetailLevel, 
+  currentDetailLevel,
 }: {
   state: NotesGeneratorFormState;
   currentTopic: string;
@@ -64,7 +64,7 @@ function NotesFormFieldsAndStatus({
         <Label htmlFor="topic" className="text-lg font-semibold">Topic for Notes</Label>
         <Textarea
           id="topic"
-          name="topic" 
+          name="topic"
           rows={3}
           placeholder="e.g., Photosynthesis, The French Revolution, Basics of Quantum Computing"
           className="mt-2"
@@ -75,7 +75,7 @@ function NotesFormFieldsAndStatus({
         />
         {state.fields?.topic && <p className="text-sm text-destructive mt-1">{state.fields.topic}</p>}
       </div>
-      
+
       <input type="hidden" name="detailLevel" value={currentDetailLevel} />
 
       {pending && (
@@ -108,7 +108,7 @@ function NotesFormFieldsAndStatus({
                     Explain More
                   </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending || !state.notes} className="w-full sm:w-auto">
                   <Copy className="mr-2 h-4 w-4" />
                   Copy Notes
                 </Button>
@@ -120,11 +120,11 @@ function NotesFormFieldsAndStatus({
                 <CardDescription>Review and use these notes for your study.</CardDescription>
               </div>
             </CardHeader>
-            <CardContent>
-                <pre className="w-full whitespace-pre-wrap font-sans text-base bg-muted p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
+            <CardContent className="px-0 sm:px-0 md:px-0 pt-0"> {/* Removed horizontal padding */}
+                <pre className="w-full whitespace-pre-wrap font-sans text-base bg-muted p-4 md:p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
                     {state.notes}
                 </pre>
-                <Alert variant="default" className="mt-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
+                <Alert variant="default" className="mt-4 mx-4 md:mx-6 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"> {/* Added margin for alert */}
                   <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   <AlertTitle className="font-semibold text-amber-700 dark:text-amber-500">Important Disclaimer</AlertTitle>
                   <AlertDescription className="text-amber-600 dark:text-amber-400">
@@ -151,19 +151,17 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); 
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
+  const [currentTopic, setCurrentTopic] = useState<string>('');
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
 
   useEffect(() => {
-    // Initialize from state on first load or after action completes
-    if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
+    if (state.topicSubmitted !== undefined) {
         setCurrentTopic(state.topicSubmitted);
     }
-    if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
+    if (state.detailLevel) {
         setCurrentDetailLevel(state.detailLevel);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.topicSubmitted, state.detailLevel]); 
+  }, [state.topicSubmitted, state.detailLevel]);
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -178,14 +176,19 @@ export default function StudentNotesGeneratorPage() {
         variant: "destructive",
       });
     }
-  }, [state.message, state.isError, state.notes, state.detailLevel, toast]); 
-  
+  }, [state.message, state.isError, state.notes, state.detailLevel, toast]);
+
   const handleExplainMore = () => {
     if (currentTopic) {
-      setCurrentDetailLevel('detailed'); 
+      setCurrentDetailLevel('detailed');
+      // Use setTimeout to ensure state update is processed before form submission
       setTimeout(() => {
         if (formRef.current) {
-          formRef.current.requestSubmit();
+          // Create a new FormData object for the submission
+          const formData = new FormData(formRef.current);
+          formData.set('topic', currentTopic); // Ensure topic is correctly set
+          formData.set('detailLevel', 'detailed'); // Explicitly set detail level
+          formAction(formData); // Call formAction with the new FormData
         }
       }, 0);
     } else {
@@ -197,8 +200,17 @@ export default function StudentNotesGeneratorPage() {
     }
   };
 
+  const handleSubmitForm = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    // currentDetailLevel is already set via state and hidden input
+    // currentTopic is also set via state and Textarea
+    formAction(formData);
+  };
+
+
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="max-w-3xl mx-auto py-8"> {/* This still constrains the overall page */}
       <Card className="shadow-xl">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
@@ -210,13 +222,17 @@ export default function StudentNotesGeneratorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={formAction} className="space-y-6">
+          <form
+            ref={formRef}
+            onSubmit={handleSubmitForm} // Use the explicit submit handler
+            className="space-y-6"
+          >
             <NotesFormFieldsAndStatus
-              state={state} 
+              state={state}
               currentTopic={currentTopic}
               setCurrentTopic={setCurrentTopic}
               handleExplainMore={handleExplainMore}
-              currentDetailLevel={currentDetailLevel} 
+              currentDetailLevel={currentDetailLevel}
             />
             <SubmitButton detailLevel={currentDetailLevel} />
           </form>
@@ -225,3 +241,4 @@ export default function StudentNotesGeneratorPage() {
     </div>
   );
 }
+
