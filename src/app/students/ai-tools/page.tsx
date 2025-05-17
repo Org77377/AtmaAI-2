@@ -29,21 +29,21 @@ const aiToolsData = [
     description: 'Generate engaging presentations from text prompts or documents. Helps with structure, design, and content.',
     icon: <Presentation className="w-10 h-10 text-purple-500" />,
     color: "purple",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://tome.app/' // UPDATED LINK
   },
   {
     name: 'AI Image Generator',
     description: 'Create unique images from text descriptions for projects, presentations, or visual aids.',
     icon: <ImageIcon className="w-10 h-10 text-pink-500" />,
     color: "pink",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://deepai.org/machine-learning-model/text2img' // UPDATED LINK
   },
   {
     name: 'AI Roadmap & Mindmap Creator',
     description: 'Visualize complex ideas, plan projects, and create study roadmaps with AI assistance.',
     icon: <GitFork className="w-10 h-10 text-orange-500" />,
     color: "orange",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://www.mymap.ai/mindmap' // UPDATED LINK
   },
   {
     name: 'AI Writing Assistant',
