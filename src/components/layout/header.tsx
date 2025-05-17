@@ -3,23 +3,28 @@
 
 import Link from 'next/link';
 import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react';
-import type { NavItemType } from '@/components/layout/main-nav'; // Corrected import path
+import type { NavItemType } from '@/components/layout/main-nav';
 import { MainNav } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const navItems: NavItemType[] = [
   { href: `/`, label: "Home" },
   { href: `/guidance`, label: "Chat" },
   { href: `/stories`, label: "Stories" },
-  { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
   { href: `/about`, label: "About Us" },
+];
+
+const mobileOnlyNavItems: NavItemType[] = [
+    { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
 ];
 
 
@@ -28,6 +33,10 @@ export default function Header() {
   const pathname = usePathname();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile(); // For conditional rendering logic if needed for other parts
+
+  // Combine nav items for mobile menu
+  const allNavItems = [...navItems, ...mobileOnlyNavItems];
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -37,13 +46,13 @@ export default function Header() {
         title: "See Ya!",
         description: "You've been logged out. Enter a new name to start fresh.",
       });
-      setIsMobileMenuOpen(false);
-      window.location.href = '/';
+      setIsMobileMenuOpen(false); // Close mobile menu on logout
+      window.location.href = '/'; // Force reload to home
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container flex h-16 items-center px-4">
         <Link href={`/`} className="mr-4 md:mr-8 flex items-baseline space-x-2">
           <Sparkles className="h-6 w-6 text-primary" />
@@ -54,7 +63,7 @@ export default function Header() {
         </Link>
 
         <div className="hidden md:flex md:flex-grow">
-         <MainNav navItems={navItems} />
+         <MainNav navItems={navItems} currentLocale="en" /> {/* Added currentLocale, assuming 'en' for now */}
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-1 md:hidden">
@@ -79,7 +88,7 @@ export default function Header() {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
-                {navItems.map((item) => (
+                {allNavItems.map((item) => (
                   <SheetClose asChild key={item.href}>
                      <Link
                        href={item.href}
