@@ -47,7 +47,7 @@ const studentFeatures = [
     description: "Discover AI-powered tools that can help with research, writing, and learning.",
     icon: <Cpu className="w-10 h-10 text-cyan-500" />,
     color: "cyan",
-    href: "#" // Placeholder for future link
+    href: "/students/ai-tools" // Updated link
   },
   {
     title: "Job Search for Freshers",
@@ -101,11 +101,11 @@ export default function StudentSuccessHubPage() {
                     asChild
                     variant="ghost"
                     className={`w-full justify-start text-${feature.color}-500 hover:text-${feature.color}-600 hover:bg-${feature.color}-500/10`}
-                    disabled={feature.href === "#"} // Disable button if href is '#'
+                    disabled={feature.href === "#" && feature.title !== "Useful AI Tools"} // Enable button for Useful AI Tools
                   >
                     <Link href={feature.href || "#"}>
-                      {feature.href === "#" ? "Coming Soon" : "Explore"}
-                      {feature.href !== "#" && <ArrowRight className="ml-2 h-4 w-4" />}
+                      {(feature.href === "#" && feature.title !== "Useful AI Tools") ? "Coming Soon" : "Explore"}
+                      {(feature.href !== "#" || feature.title === "Useful AI Tools" && feature.href !== "#") && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Link>
                   </Button>
                 </div>
