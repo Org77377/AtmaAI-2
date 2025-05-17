@@ -19,8 +19,8 @@ export type GuidanceFormState = {
 
 const guidanceFormSchema = z.object({
   profile: z.string().min(1, "Profile information is optional but helpful.").or(z.literal("")).optional(),
-  mood: z.string().min(3, "Please describe your current mood."),
-  issue: z.string().min(10, "Please describe your issue in a bit more detail (at least 10 characters)."), // Reduced from 20
+  mood: z.string().min(3, "Please describe your current mood.").optional().or(z.literal("")), // Made mood optional as well for follow-up messages
+  issue: z.string().min(10, "Please describe your issue in a bit more detail (at least 10 characters)."),
   conversationHistory: z.string().optional(), // JSON string of ChatMessage[]
 });
 
@@ -32,7 +32,7 @@ export async function handleGenerateGuidance(
   
   const validatedFields = guidanceFormSchema.safeParse({
     profile: formData.get('profile') || "", 
-    mood: formData.get('mood'),
+    mood: formData.get('mood') || "", // Allow mood to be empty string if not provided
     issue: formData.get('issue'),
     conversationHistory: formData.get('conversationHistory'),
   });
@@ -64,7 +64,7 @@ export async function handleGenerateGuidance(
   try {
     const input: PersonalizedGuidanceInput = {
         profile: validatedFields.data.profile || "User chose not to share profile details.", 
-        mood: validatedFields.data.mood,
+        mood: validatedFields.data.mood || "Not specified by user.", // Provide default if mood is empty
         issue: validatedFields.data.issue,
         conversationHistory: parsedConversationHistory,
     };
@@ -83,12 +83,15 @@ export async function handleGenerateGuidance(
       updatedConversationHistory: newUpdatedConversationHistory,
     };
   } catch (error) {
-    console.error("Error generating guidance:", error);
+    console.error("Error generating guidance in server action:", error);
+    let errorMessage = "Failed to generate guidance. AatmAI might be busy or there was an issue. Please try again later.";
+    if (error instanceof Error) {
+        errorMessage = error.message; // Use the specific error message from the flow if available
+    }
     return {
-      message: "Failed to generate guidance. AatmAI might be busy or there was an issue. Please try again later.",
+      message: errorMessage,
       isError: true,
       updatedConversationHistory: parsedConversationHistory, // return old history on error
     };
   }
 }
-

@@ -68,10 +68,14 @@ const curateInspiringStoriesFlow = ai.defineFlow(
     outputSchema: CurateInspiringStoriesOutputSchema,
   },
   async input => {
-    const {output} = await prompt({
+    const response = await prompt({
         userProfile: input.userProfile || "User chose not to share profile details.",
         currentChallenges: input.currentChallenges,
     });
-    return output!;
+    if (!response.output) {
+      console.error("AI prompt 'curateInspiringStoriesPrompt' did not return a valid output.", response);
+      throw new Error("AI failed to generate a valid response structure for curated stories.");
+    }
+    return response.output;
   }
 );

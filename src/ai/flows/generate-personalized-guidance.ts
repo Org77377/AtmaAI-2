@@ -19,7 +19,8 @@ const ChatMessageSchema = z.object({
 const PersonalizedGuidanceInputSchema = z.object({
   profile: z
     .string()
-    .describe('The user profile, including career, financial, and relationship information.'),
+    .optional()
+    .describe('The user profile, including career, financial, and relationship information. Optional.'),
   mood: z.string().describe('The current mood of the user.'),
   issue: z
     .string()
@@ -60,16 +61,14 @@ const prompt = ai.definePrompt({
 
   Conversation History:
   {{#if conversationHistory}}
-  {{#each conversationHistory}}
-  {{#if (eq this.role "user")}}User: {{this.content}}{{/if}}
-  {{#if (eq this.role "model")}}AatmAI: {{this.content}}{{/if}}
-  {{/each}}
+    {{#each conversationHistory}}
+      {{this.role}}: {{this.content}}
+    {{/each}}
   {{else}}
   This is the beginning of our conversation.
   {{/if}}
 
   Speaking Style:
-  - Speak in a warm, supportive, and encouraging tone.
   - VARY YOUR OPENING PHRASES. Avoid starting every response with common phrases like "Hey, it's completely normal." or "I understand." Aim for a natural, empathetic, and varied conversational flow from the very beginning.
   - Remember that the user is from India, so cultural context and sensitivity are very important.
   - Avoid giving prescriptive advice like a "guidance counselor." Instead, offer reflections, gentle questions, or affirmations that empower the user to think.
@@ -92,8 +91,11 @@ const personalizedGuidanceFlow = ai.defineFlow(
     outputSchema: PersonalizedGuidanceOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const response = await prompt(input);
+    if (!response.output) {
+      console.error("AI prompt 'personalizedGuidancePrompt' did not return a valid output.", response);
+      throw new Error("AI failed to generate a valid response structure for personalized guidance.");
+    }
+    return response.output;
   }
 );
-

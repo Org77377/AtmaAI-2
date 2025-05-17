@@ -1,3 +1,4 @@
+
 'use server';
 
 import { curateInspiringStories, type CurateInspiringStoriesInput, type CurateInspiringStoriesOutput } from '@/ai/flows/curate-inspiring-stories';
@@ -11,8 +12,8 @@ export type StoriesFormState = {
 };
 
 const storiesFormSchema = z.object({
-  userProfile: z.string().min(50, "User profile should be detailed, at least 50 characters."),
-  currentChallenges: z.string().min(20, "Please describe current challenges in detail, at least 20 characters."),
+  userProfile: z.string().min(1, "Please provide some profile details.").optional().or(z.literal("")), // Made optional and less restrictive
+  currentChallenges: z.string().min(10, "Please describe current challenges in detail, at least 10 characters."), // Kept min 10 for challenges
 });
 
 export async function handleCurateStories(
@@ -21,7 +22,7 @@ export async function handleCurateStories(
 ): Promise<StoriesFormState> {
 
   const validatedFields = storiesFormSchema.safeParse({
-    userProfile: formData.get('userProfile'),
+    userProfile: formData.get('userProfile') || "", // Allow empty string
     currentChallenges: formData.get('currentChallenges'),
   });
 
@@ -40,7 +41,10 @@ export async function handleCurateStories(
   }
 
   try {
-    const input: CurateInspiringStoriesInput = validatedFields.data;
+    const input: CurateInspiringStoriesInput = {
+        userProfile: validatedFields.data.userProfile || "User chose not to share profile details.",
+        currentChallenges: validatedFields.data.currentChallenges,
+    };
     const result = await curateInspiringStories(input);
     return {
       message: "Inspiring stories curated successfully!",
@@ -48,9 +52,13 @@ export async function handleCurateStories(
       isError: false,
     };
   } catch (error) {
-    console.error("Error curating stories:", error);
+    console.error("Error curating stories in server action:", error);
+    let errorMessage = "Failed to curate stories. AatmAI might be busy or there was an issue. Please try again later.";
+     if (error instanceof Error) {
+        errorMessage = error.message; // Use the specific error message from the flow if available
+    }
     return {
-      message: "Failed to curate stories. Please try again later.",
+      message: errorMessage,
       isError: true,
     };
   }
