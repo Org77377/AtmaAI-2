@@ -32,9 +32,9 @@ const GenerateProjectIdeasInputSchema = z.object({
     .describe('Optional: Desired difficulty level.'),
   additionalContext: z
     .string()
+    .max(500, 'Additional context is too long. Please keep it under 500 characters.')
     .optional()
-    .describe('Optional: Any other specific requirements, constraints, or context for the project ideas (e.g., specific technologies to use, available resources, duration).')
-    .max(500, 'Additional context is too long. Please keep it under 500 characters.'),
+    .describe('Optional: Any other specific requirements, constraints, or context for the project ideas (e.g., specific technologies to use, available resources, duration).'),
 });
 export type GenerateProjectIdeasInput = z.infer<
   typeof GenerateProjectIdeasInputSchema
