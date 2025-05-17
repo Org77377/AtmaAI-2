@@ -22,7 +22,7 @@ const initialState: NotesGeneratorFormState = {
 function SubmitButton({ detailLevel }: { detailLevel: 'concise' | 'detailed' }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
+    <Button type="submit" className="w-full sm:w-auto mt-4" disabled={pending}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
       {detailLevel === 'concise' ? 'Generate Concise Notes' : 'Generate Detailed Explanation'}
     </Button>
@@ -100,25 +100,7 @@ function NotesFormFieldsAndStatus({
         <Card className="mt-8 shadow-lg">
             <CardHeader className="p-6">
               <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end sm:items-center mb-4">
-                {state.detailLevel === 'concise' && (
-                  <Button
-                    type="button" // Ensures it doesn't submit the main form
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // This button's action is handled by the parent's "Explain More" button
-                      // The actual click target will be the "Explain More" button in StudentNotesGeneratorPage
-                    }}
-                    disabled={pending}
-                    className="w-full sm:w-auto"
-                    data-explain-more-button // This button in the card header might be better removed if the main form has one.
-                                             // Or, it needs to trigger the parent's handleExplainMore.
-                                             // For now, keeping it as a placeholder or visual element.
-                  >
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    Explain More
-                  </Button>
-                )}
+                {/* "Explain More" button previously here has been removed */}
                 <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending || !state.notes} className="w-full sm:w-auto">
                   <Copy className="mr-2 h-4 w-4" />
                   Copy Notes
@@ -132,10 +114,10 @@ function NotesFormFieldsAndStatus({
               </div>
             </CardHeader>
             <CardContent className="px-0 sm:px-0 md:px-0 pt-0">
-                <pre className="w-full whitespace-pre-wrap font-sans text-base bg-muted p-4 md:p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
+                <pre className="w-full whitespace-pre-wrap font-sans text-base bg-muted p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
                     {state.notes}
                 </pre>
-                <Alert variant="default" className="mt-4 py-3 px-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"> {/* Adjusted padding and removed mx */}
+                <Alert variant="default" className="mt-4 py-3 px-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
                   <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   <AlertTitle className="font-semibold text-amber-700 dark:text-amber-500">Important Disclaimer</AlertTitle>
                   <AlertDescription className="text-amber-600 dark:text-amber-400">
@@ -162,17 +144,18 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(initialState.topicSubmitted || '');
+  const [currentTopic, setCurrentTopic] = useState<string>(initialState.inputSubmitted || '');
   const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(initialState.detailLevel || 'concise');
 
   useEffect(() => {
+    // Initialize local state from server action state only once or when relevant fields change
     if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
       setCurrentTopic(state.topicSubmitted);
     }
     if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
       setCurrentDetailLevel(state.detailLevel);
     }
-  }, [state.topicSubmitted, state.detailLevel]);
+  }, [state.topicSubmitted, state.detailLevel]); // Removed currentTopic, currentDetailLevel from dependencies to avoid loops
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -191,18 +174,12 @@ export default function StudentNotesGeneratorPage() {
 
   const handleExplainMore = () => {
     if (currentTopic) {
-      setCurrentDetailLevel('detailed');
+      setCurrentDetailLevel('detailed'); // Set the detail level for the next submission
+      // Ensure state is updated before submitting.
+      // Using setTimeout to allow React to process state update before submitting.
       setTimeout(() => {
         if (formRef.current) {
-          // Create FormData and explicitly set values before programmatic submission
-          const formData = new FormData(formRef.current);
-          formData.set('topic', currentTopic); // Ensure current topic is used
-          formData.set('detailLevel', 'detailed'); // Ensure detail level is 'detailed'
-          
-          // It's better to rely on the form's action prop, 
-          // so we programmatically submit the form itself.
-          // The hidden input for detailLevel should pick up the new currentDetailLevel state.
-          formRef.current.requestSubmit();
+          formRef.current.requestSubmit(); // Submit the form, action will pick up currentDetailLevel
         }
       }, 0);
     } else {
@@ -229,7 +206,7 @@ export default function StudentNotesGeneratorPage() {
         <CardContent>
           <form
             ref={formRef}
-            action={formAction}
+            action={formAction} // Use formAction directly here
             className="space-y-6"
           >
             <NotesFormFieldsAndStatus
@@ -239,14 +216,14 @@ export default function StudentNotesGeneratorPage() {
               currentDetailLevel={currentDetailLevel}
             />
             
-            {/* "Explain More" button moved here, directly within the form, conditionally displayed */}
+            {/* "Explain More" button directly within the form, conditionally displayed */}
             {!useFormStatus().pending && state.notes && state.detailLevel === 'concise' && (
                  <Button
-                    type="button"
+                    type="button" // Important: type="button" to not submit the form directly
                     variant="outline"
                     size="sm"
-                    onClick={handleExplainMore}
-                    className="w-full sm:w-auto"
+                    onClick={handleExplainMore} // This calls the correct function
+                    className="w-full sm:w-auto mt-4" // Added mt-4 for spacing
                 >
                     <HelpCircle className="mr-2 h-4 w-4" />
                     Explain More
