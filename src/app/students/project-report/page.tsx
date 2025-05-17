@@ -23,13 +23,13 @@ const initialState: ProjectReportFormState = {
   inputSubmitted: undefined,
 };
 
-function SubmitButton() {
+function SubmitButtonContent() { // Renamed from SubmitButton to avoid conflict, just for content
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
+    <>
       <Sparkles className="mr-2 h-4 w-4" />
       Generate Project Report
-    </Button>
+    </>
   );
 }
 
@@ -162,14 +162,14 @@ function ProjectReportFormFieldsAndStatus({
                 </pre>
               </div>
             )}
-            <Alert variant="default" className="mt-4 mx-0 py-3 px-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
+            <Alert variant="default" className="mt-4 py-3 px-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
               <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <AlertTitle className="font-semibold text-amber-700 dark:text-amber-500">Important Disclaimer</AlertTitle>
               <AlertDescription className="text-amber-600 dark:text-amber-400">
                 AatmAI provides a draft project report as a starting point. Always customize, verify information, and adhere to your institution's specific guidelines and formatting requirements. This AI-generated content should be thoroughly reviewed and edited.
               </AlertDescription>
             </Alert>
-             <Alert variant="default" className="mt-4 mx-0 py-3 px-4 bg-sky-50 dark:bg-sky-900/30 border-sky-300 dark:border-sky-700">
+             <Alert variant="default" className="mt-4 py-3 px-4 bg-sky-50 dark:bg-sky-900/30 border-sky-300 dark:border-sky-700">
                 <FileText className="h-5 w-5 text-sky-600 dark:text-sky-400" />
                 <AlertTitle className="font-semibold text-sky-700 dark:text-sky-500">Pro Tip!</AlertTitle>
                 <AlertDescription className="text-sky-600 dark:text-sky-400">
@@ -181,6 +181,23 @@ function ProjectReportFormFieldsAndStatus({
         </Card>
       )}
     </>
+  );
+}
+
+function FormSubmitControls() {
+  const { pending } = useFormStatus();
+  return (
+    <div className="flex flex-col items-center">
+      <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
+        <Sparkles className="mr-2 h-4 w-4" />
+        Generate Project Report
+      </Button>
+      {pending && (
+        <p className="text-sm text-muted-foreground mt-3 text-center">
+          Generating... please wait while your report is being generated.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -208,7 +225,6 @@ export default function ProjectReportGeneratorPage() {
         });
       }
     }
-    // Sync local input state with what was actually submitted if available
     if (state.inputSubmitted) {
       setCurrentInput(state.inputSubmitted);
     }
@@ -240,7 +256,7 @@ export default function ProjectReportGeneratorPage() {
               currentInput={currentInput}
               onInputChange={handleInputChange}
             />
-            <SubmitButton />
+            <FormSubmitControls />
           </form>
         </CardContent>
       </Card>
