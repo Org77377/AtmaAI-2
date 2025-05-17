@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateGuidance, type GuidanceFormState, type ChatMessage } from '@/app/guidance/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Info, Sparkles, Send, User } from 'lucide-react'; // Removed Bot, added Sparkles
+import { Loader2, AlertTriangle, Info, Sparkles, Send, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -73,7 +73,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required
+              required={conversationHistoryLength === 0} // Only required for the first message
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -150,7 +150,7 @@ export default function PersonalizedGuidanceForm() {
   }, []);
 
   useEffect(() => {
-    if (state.message && !state.isError && state.guidance) { // Ensure it's a successful response with guidance
+    if (state.message && !state.isError && state.guidance) { 
        toast({
         title: "AatmAI Responded!",
       });
@@ -158,8 +158,7 @@ export default function PersonalizedGuidanceForm() {
         setConversationHistory(state.updatedConversationHistory);
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
-      setCurrentIssue(''); // Clear the input field
-      // formRef.current?.reset(); // This might clear hidden fields too, which we don't want for conversationHistory
+      setCurrentIssue(''); 
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -194,20 +193,20 @@ export default function PersonalizedGuidanceForm() {
             <CardTitle className="text-lg text-primary">Our Conversation</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[300px] w-full pr-4" ref={scrollAreaRef}> {/* Increased height */}
+            <ScrollArea className="h-[300px] w-full pr-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {conversationHistory.map((msg, index) => (
                   <div
                     key={index}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg shadow-sm text-sm", // Added base text-sm
-                      msg.role === 'user' ? "bg-primary/10 justify-end ml-auto max-w-[85%]" : "bg-muted/60 mr-auto max-w-[85%]" // Adjusted alignment and max-width
+                      "flex items-start gap-3 p-3 rounded-lg shadow-sm text-sm w-full", // Applied w-full
+                      msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
                     )}
                   >
-                    {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />} {/* Changed to Sparkles */}
+                    {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                     <p className={cn(
-                        "whitespace-pre-wrap", // Removed max-width here as it's on parent
-                        msg.role === 'user' ? "text-right text-foreground" : "text-foreground"
+                        "whitespace-pre-wrap flex-1", // Added flex-1 to allow text to take available space
+                        msg.role === 'user' ? "text-foreground" : "text-foreground"
                       )}
                     >
                       {msg.content}
@@ -223,6 +222,14 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
+        {/* Pass profile and mood as hidden fields if conversationHistory.length > 0 */}
+        {/* This is a simplification; ideally, profile/mood wouldn't be resubmitted or server action would handle it */}
+        {conversationHistory.length > 0 && (
+          <>
+            <input type="hidden" name="profile" value={localStorage.getItem('aatmAI-userName') || "User"} /> 
+            <input type="hidden" name="mood" value="Continuing conversation" />
+          </>
+        )}
 
         <FormFieldsAndStatus
           fields={state.fields}
