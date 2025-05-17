@@ -19,7 +19,7 @@ export type GuidanceFormState = {
 
 const guidanceFormSchema = z.object({
   profile: z.string().min(1, "Profile information is optional but helpful.").or(z.literal("")).optional(),
-  mood: z.string().min(3, "Please describe your current mood.").optional().or(z.literal("")), // Made mood optional as well for follow-up messages
+  mood: z.string().min(1, "Please describe your current mood.").or(z.literal("")).optional(), // Allow empty string if not provided for follow-ups
   issue: z.string().min(10, "Please describe your issue in a bit more detail (at least 10 characters)."),
   conversationHistory: z.string().optional(), // JSON string of ChatMessage[]
 });
@@ -32,7 +32,7 @@ export async function handleGenerateGuidance(
   
   const validatedFields = guidanceFormSchema.safeParse({
     profile: formData.get('profile') || "", 
-    mood: formData.get('mood') || "", // Allow mood to be empty string if not provided
+    mood: formData.get('mood') || "", 
     issue: formData.get('issue'),
     conversationHistory: formData.get('conversationHistory'),
   });
@@ -64,7 +64,7 @@ export async function handleGenerateGuidance(
   try {
     const input: PersonalizedGuidanceInput = {
         profile: validatedFields.data.profile || "User chose not to share profile details.", 
-        mood: validatedFields.data.mood || "Not specified by user.", // Provide default if mood is empty
+        mood: validatedFields.data.mood || "Not specified by user.", 
         issue: validatedFields.data.issue,
         conversationHistory: parsedConversationHistory,
     };
@@ -82,11 +82,18 @@ export async function handleGenerateGuidance(
       isError: false,
       updatedConversationHistory: newUpdatedConversationHistory,
     };
-  } catch (error) {
-    console.error("Error generating guidance in server action:", error);
+  } catch (error: any) {
+    console.error("Detailed error in handleGenerateGuidance:", error);
     let errorMessage = "Failed to generate guidance. AatmAI might be busy or there was an issue. Please try again later.";
-    if (error instanceof Error) {
-        errorMessage = error.message; // Use the specific error message from the flow if available
+    if (error && typeof error.message === 'string') {
+        if (error.message.toLowerCase().includes('overloaded') || error.message.toLowerCase().includes('rate limit')) {
+            errorMessage = "AatmAI's servers are currently busy. Please try again in a few moments.";
+        } else if (error.message.includes('AI failed to generate a valid response structure')) {
+            errorMessage = "AatmAI had trouble understanding the request or formulating a response. Please try rephrasing or try again later.";
+        } else {
+            // Use the specific error from the flow if it's not too technical
+            errorMessage = error.message.length < 100 ? error.message : errorMessage;
+        }
     }
     return {
       message: errorMessage,
@@ -95,3 +102,4 @@ export async function handleGenerateGuidance(
     };
   }
 }
+

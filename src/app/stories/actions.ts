@@ -12,8 +12,8 @@ export type StoriesFormState = {
 };
 
 const storiesFormSchema = z.object({
-  userProfile: z.string().min(1, "Please provide some profile details.").optional().or(z.literal("")), // Made optional and less restrictive
-  currentChallenges: z.string().min(10, "Please describe current challenges in detail, at least 10 characters."), // Kept min 10 for challenges
+  userProfile: z.string().optional().or(z.literal("")), // Optional, can be empty
+  currentChallenges: z.string().min(10, "Please describe current challenges in detail, at least 10 characters."),
 });
 
 export async function handleCurateStories(
@@ -22,7 +22,7 @@ export async function handleCurateStories(
 ): Promise<StoriesFormState> {
 
   const validatedFields = storiesFormSchema.safeParse({
-    userProfile: formData.get('userProfile') || "", // Allow empty string
+    userProfile: formData.get('userProfile') || "", 
     currentChallenges: formData.get('currentChallenges'),
   });
 
@@ -51,11 +51,18 @@ export async function handleCurateStories(
       stories: result,
       isError: false,
     };
-  } catch (error) {
-    console.error("Error curating stories in server action:", error);
+  } catch (error: any) {
+    console.error("Detailed error in handleCurateStories:", error);
     let errorMessage = "Failed to curate stories. AatmAI might be busy or there was an issue. Please try again later.";
-     if (error instanceof Error) {
-        errorMessage = error.message; // Use the specific error message from the flow if available
+    if (error && typeof error.message === 'string') {
+        if (error.message.toLowerCase().includes('overloaded') || error.message.toLowerCase().includes('rate limit')) {
+            errorMessage = "AatmAI's servers are currently busy finding stories. Please try again in a few moments.";
+        } else if (error.message.includes('AI failed to generate a valid response structure')) {
+            errorMessage = "AatmAI had trouble understanding the request or finding suitable stories. Please try adjusting your input or try again later.";
+        } else {
+             // Use the specific error from the flow if it's not too technical
+            errorMessage = error.message.length < 100 ? error.message : errorMessage;
+        }
     }
     return {
       message: errorMessage,
@@ -63,3 +70,4 @@ export async function handleCurateStories(
     };
   }
 }
+
