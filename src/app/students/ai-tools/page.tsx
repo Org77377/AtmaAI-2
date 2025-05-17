@@ -19,73 +19,69 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-// IMPORTANT:
-// For each tool in the aiToolsData array below, you MUST replace
-// the placeholder href: '#' with the actual URL of the AI tool.
-// If href remains '#', the links will not navigate to an external site.
 const aiToolsData = [
   {
     name: 'AI Presentation Maker',
     description: 'Generate engaging presentations from text prompts or documents. Helps with structure, design, and content.',
     icon: <Presentation className="w-10 h-10 text-purple-500" />,
     color: "purple",
-    href: 'https://tome.app/' // UPDATED LINK
+    href: 'https://tome.app/'
   },
   {
     name: 'AI Image Generator',
     description: 'Create unique images from text descriptions for projects, presentations, or visual aids.',
     icon: <ImageIcon className="w-10 h-10 text-pink-500" />,
     color: "pink",
-    href: 'https://deepai.org/machine-learning-model/text2img' // UPDATED LINK
+    href: 'https://deepai.org/machine-learning-model/text2img'
   },
   {
     name: 'AI Roadmap & Mindmap Creator',
     description: 'Visualize complex ideas, plan projects, and create study roadmaps with AI assistance.',
     icon: <GitFork className="w-10 h-10 text-orange-500" />,
     color: "orange",
-    href: 'https://www.mymap.ai/mindmap' // UPDATED LINK
+    href: 'https://www.mymap.ai/mindmap'
   },
   {
     name: 'AI Writing Assistant',
     description: 'Improve grammar, clarity, and style in essays, reports, and emails. Helps with paraphrasing and summarization.',
     icon: <FileText className="w-10 h-10 text-blue-500" />,
     color: "blue",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://www.hyperwriteai.com/'
   },
   {
     name: 'AI Research Assistant',
     description: 'Find relevant papers, extract key information, and get answers from research documents quickly.',
     icon: <Search className="w-10 h-10 text-green-500" />,
     color: "green",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://scite.ai/assistant'
   },
   {
     name: 'AI Coding Assistant',
     description: 'Get help with code generation, debugging, and understanding programming concepts.',
     icon: <Code className="w-10 h-10 text-gray-500" />,
     color: "gray",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://firebase.google.com/' // Updated based on user input
   },
   {
     name: 'AI Video Editor/Creator',
     description: 'Automate video editing tasks, generate videos from text or articles, or create short video summaries.',
     icon: <Video className="w-10 h-10 text-red-500" />,
     color: "red",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://www.steve.ai/'
   },
   {
     name: 'AI Study Aid & Flashcard Generator',
     description: 'Create flashcards, quizzes, and personalized study materials from your notes or textbooks.',
     icon: <Sparkles className="w-10 h-10 text-yellow-500" />,
     color: "yellow",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://www.revisely.com/flashcard-generator'
   },
   {
     name: 'AI Learning Path Generator',
     description: 'Get personalized learning paths for new skills or subjects, with resource recommendations.',
     icon: <GraduationCap className="w-10 h-10 text-teal-500" />,
     color: "teal",
-    href: '#' // REPLACE THIS with the actual URL
+    href: 'https://www.taskade.com/generate/outline/learning-path-outline'
   },
 ];
 
