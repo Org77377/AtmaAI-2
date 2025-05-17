@@ -27,17 +27,8 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Generating Report...
-        </>
-      ) : (
-        <>
-          <Sparkles className="mr-2 h-4 w-4" />
-          Generate Project Report
-        </>
-      )}
+      <Sparkles className="mr-2 h-4 w-4" />
+      Generate Project Report
     </Button>
   );
 }
@@ -217,6 +208,7 @@ export default function ProjectReportGeneratorPage() {
         });
       }
     }
+    // Sync local input state with what was actually submitted if available
     if (state.inputSubmitted) {
       setCurrentInput(state.inputSubmitted);
     }
