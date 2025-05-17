@@ -11,13 +11,14 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateProjectGuidanceInputSchema = z.object({
+// Define Zod schemas locally - DO NOT EXPORT THEM
+const GenerateProjectGuidanceInputSchema = z.object({
   projectTitle: z.string().describe('The title of the project idea.'),
   projectDescription: z.string().describe('The detailed description of the project idea.'),
 });
 export type GenerateProjectGuidanceInput = z.infer<typeof GenerateProjectGuidanceInputSchema>;
 
-export const GenerateProjectGuidanceOutputSchema = z.object({
+const GenerateProjectGuidanceOutputSchema = z.object({
   suggestedTechStack: z.array(z.string()).describe('A list of suggested technologies or tools (e.g., Python, React, Firebase, Arduino).'),
   highLevelSteps: z.array(z.string()).describe('A list of high-level steps to approach the project implementation.'),
   keyConsiderations: z.array(z.string()).optional().describe('Optional: Key considerations or challenges for the project.'),
@@ -32,8 +33,8 @@ export async function generateProjectGuidance(
 
 const prompt = ai.definePrompt({
   name: 'generateProjectGuidancePrompt',
-  input: {schema: GenerateProjectGuidanceInputSchema},
-  output: {schema: GenerateProjectGuidanceOutputSchema},
+  input: {schema: GenerateProjectGuidanceInputSchema}, // Uses local schema
+  output: {schema: GenerateProjectGuidanceOutputSchema}, // Uses local schema
   prompt: `You are an expert project advisor for students. For the given project idea, provide practical and actionable guidance.
 
 Project Title: {{{projectTitle}}}
@@ -51,8 +52,8 @@ Keep your suggestions practical, clear, and encouraging for a student audience f
 const generateProjectGuidanceFlow = ai.defineFlow(
   {
     name: 'generateProjectGuidanceFlow',
-    inputSchema: GenerateProjectGuidanceInputSchema,
-    outputSchema: GenerateProjectGuidanceOutputSchema,
+    inputSchema: GenerateProjectGuidanceInputSchema, // Uses local schema
+    outputSchema: GenerateProjectGuidanceOutputSchema, // Uses local schema
   },
   async input => {
     const response = await prompt(input);

@@ -8,9 +8,9 @@ import {
 } from '@/ai/flows/generate-project-ideas-flow';
 import {
   generateProjectGuidance,
-  type GenerateProjectGuidanceInput,
+  // GenerateProjectGuidanceInputSchema is no longer exported from the flow file
+  type GenerateProjectGuidanceInput, // Still import the type
   type GenerateProjectGuidanceOutput,
-  GenerateProjectGuidanceInputSchema,
 } from '@/ai/flows/generate-project-guidance-flow';
 import { z } from 'zod';
 
@@ -44,7 +44,7 @@ const projectIdeasFormSchema = z.object({
     .max(500, 'Additional context is too long. Please keep it under 500 characters.')
     .optional()
     .default('')
-    .transform(val => val || ''), // Ensure empty string if null/undefined
+    .transform(val => val || ''), 
 });
 
 
@@ -124,22 +124,30 @@ export type ProjectGuidanceRequestState = {
   projectTitle?: string;
 };
 
+// Define the Zod schema for input validation locally within this server action file
+const LocalGenerateProjectGuidanceInputSchema = z.object({
+  projectTitle: z.string().min(1, 'Project title cannot be empty.'),
+  projectDescription: z.string().min(10, 'Project description must be at least 10 characters.'),
+});
+
 export async function handleGenerateProjectGuidance(
-  input: GenerateProjectGuidanceInput
+  input: GenerateProjectGuidanceInput // Use the imported type for function signature
 ): Promise<ProjectGuidanceRequestState> {
   
-  const validatedFields = GenerateProjectGuidanceInputSchema.safeParse(input);
+  // Validate the input using the locally defined schema
+  const validatedFields = LocalGenerateProjectGuidanceInputSchema.safeParse(input);
 
   if (!validatedFields.success) {
     console.error("Invalid input to handleGenerateProjectGuidance:", validatedFields.error.flatten().fieldErrors);
     return {
-      message: 'Invalid project details provided for guidance. Title and description are required.',
+      message: 'Invalid project details provided for guidance. Title and description are required and must meet length criteria.',
       isError: true,
       projectTitle: input.projectTitle,
     };
   }
 
   try {
+    // Call the AI flow with the validated data
     const result = await generateProjectGuidance(validatedFields.data);
     return {
       message: 'Project guidance generated successfully!',
@@ -162,7 +170,7 @@ export async function handleGenerateProjectGuidance(
     return {
       message: errorMessage,
       isError: true,
-      projectTitle: validatedFields.data.projectTitle,
+      projectTitle: validatedFields.data.projectTitle, // Use validated data here
     };
   }
 }
