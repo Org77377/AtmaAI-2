@@ -73,7 +73,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required={conversationHistoryLength === 0} // Only required for the first message
+              required={conversationHistoryLength === 0} 
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -101,7 +101,7 @@ function FormFieldsAndStatus({
 
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
-          <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400 mr-2" />
           <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is thinking...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             Please wait a moment while AatmAI considers your thoughts.
@@ -128,11 +128,27 @@ export default function PersonalizedGuidanceForm() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(true);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
 
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
-  const [currentIssue, setCurrentIssue] = useState(''); // For the text area input
+  const [currentIssue, setCurrentIssue] = useState(''); 
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const loadVoices = () => {
+        const availableVoices = window.speechSynthesis.getVoices();
+        if (availableVoices.length > 0) {
+          setVoices(availableVoices);
+        }
+      };
+      loadVoices(); // Initial attempt
+      window.speechSynthesis.onvoiceschanged = loadVoices; // Listen for changes
+    } else {
+      setSpeechSynthesisSupported(false);
+    }
+
     const storedHistory = localStorage.getItem('aatmAI-chat-history');
     if (storedHistory) {
       try {
@@ -158,8 +174,9 @@ export default function PersonalizedGuidanceForm() {
         setConversationHistory(state.updatedConversationHistory);
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
-      setCurrentIssue(''); // Clear the input field after successful submission
-      formRef.current?.reset(); // Reset other form fields if needed (profile, mood, if still visible)
+      setCurrentIssue(''); 
+      // Don't reset the entire formRef.current?.reset() if profile and mood are hidden
+      // as it might cause issues. Clearing currentIssue is sufficient.
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -179,18 +196,53 @@ export default function PersonalizedGuidanceForm() {
   }, [conversationHistory]);
 
   const handleSpeak = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Cancel any ongoing speech
-      const utterance = new SpeechSynthesisUtterance(text);
-      // You could configure utterance.voice, utterance.pitch, utterance.rate here if needed
-      window.speechSynthesis.speak(utterance);
-    } else {
+    if (!speechSynthesisSupported) {
       toast({
         title: "Speech Not Supported",
         description: "Your browser does not support text-to-speech.",
         variant: "destructive",
       });
+      return;
     }
+
+    window.speechSynthesis.cancel(); // Stop any ongoing speech
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Attempt to find a more natural voice
+    let selectedVoice = null;
+    const preferredVoices = [
+      // More common, often natural-sounding voices (order matters for preference)
+      "Google US English", "Microsoft Zira Desktop - English (United States)", "Microsoft David Desktop - English (United States)",
+      "Samantha", "Alex", "Google UK English Female", "Google UK English Male",
+    ];
+
+    // Prioritize local, English voices with preferred names
+    const localVoices = voices.filter(voice => voice.lang.startsWith('en') && voice.localService);
+    for (const name of preferredVoices) {
+      selectedVoice = localVoices.find(voice => voice.name === name) || null;
+      if (selectedVoice) break;
+    }
+    // Fallback: any local English voice
+    if (!selectedVoice && localVoices.length > 0) {
+      selectedVoice = localVoices[0];
+    }
+    // Fallback: any English voice
+    if (!selectedVoice) {
+      const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+      if (englishVoices.length > 0) {
+          selectedVoice = englishVoices.find(voice => voice.name.includes("English")) || englishVoices[0];
+      }
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    // You can also adjust pitch and rate if desired:
+    // utterance.pitch = 1; // 0 to 2
+    // utterance.rate = 1; // 0.1 to 10
+
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -217,11 +269,11 @@ export default function PersonalizedGuidanceForm() {
                   <div
                     key={index}
                     className={cn(
-                      "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full break-words", 
+                      "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full", 
                       msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
                     )}
                   >
-                    <div className="flex items-center gap-2 w-full">
+                    <div className="flex items-center gap-2 w-full break-words">
                         {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
                         <p className={cn(
                             "whitespace-pre-wrap flex-1", 
@@ -232,7 +284,7 @@ export default function PersonalizedGuidanceForm() {
                         </p>
                         {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0" />}
                     </div>
-                    {msg.role === 'model' && (
+                    {msg.role === 'model' && speechSynthesisSupported && (
                         <Button
                             variant="ghost"
                             size="icon"
@@ -255,7 +307,6 @@ export default function PersonalizedGuidanceForm() {
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
         {conversationHistory.length > 0 && (
           <>
-            {/* Profile and Mood are now part of the conversation history and not separate inputs after first message */}
             <input type="hidden" name="profile" value={localStorage.getItem('aatmAI-userName') || "User"} />
             <input type="hidden" name="mood" value="Continuing conversation" />
           </>
