@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +53,7 @@ const studentFeatures = [
     description: "Create personalized learning roadmaps for new skills or subjects.",
     icon: <GitFork className="w-10 h-10 text-orange-500" />,
     color: "orange",
-    href: "#"
+    href: "/students/roadmap-generator" // Enabled link
   },
   {
     title: "Job Search for Freshers",
@@ -92,7 +91,7 @@ export default function StudentSuccessHubPage() {
             {studentFeatures.map((feature) => (
               <Card
                 key={feature.title}
-                className={`shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between border-l-4 border-${feature.color}-500`}
+                className={`shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between border-l-4 border-${feature.color}-500 dark:border-${feature.color}-400`}
               >
                 <CardHeader>
                   <div className="flex items-center gap-4">
@@ -107,7 +106,7 @@ export default function StudentSuccessHubPage() {
                   <Button
                     asChild
                     variant="ghost"
-                    className={`w-full justify-start text-${feature.color}-500 hover:text-${feature.color}-600 hover:bg-${feature.color}-500/10`}
+                    className={`w-full justify-start text-${feature.color}-500 dark:text-${feature.color}-400 hover:text-${feature.color}-600 dark:hover:text-${feature.color}-300 hover:bg-${feature.color}-500/10 dark:hover:bg-${feature.color}-400/10`}
                     disabled={feature.href === "#"}
                   >
                     <Link href={feature.href || "#"}>
