@@ -63,7 +63,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required={conversationHistoryLength === 0} // Only required for first message
+              // required={conversationHistoryLength === 0} // Only required for first message - making it optional always
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -135,7 +135,6 @@ export default function PersonalizedGuidanceForm() {
   const [speakingMessageKey, setSpeakingMessageKey] = useState<string | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-
   useEffect(() => {
     const storedHistory = localStorage.getItem('aatmAI-chat-history');
     if (storedHistory) {
@@ -158,20 +157,22 @@ export default function PersonalizedGuidanceForm() {
         const voices = window.speechSynthesis.getVoices();
         setAvailableVoices(voices);
       };
-      loadVoices(); // Initial load
-      // For some browsers, voices are loaded asynchronously.
+
+      // Voices might load asynchronously.
       if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
+      loadVoices(); // Initial attempt to load voices
 
-      return () => { // Cleanup
-        if (window.speechSynthesis) { 
-          window.speechSynthesis.cancel();
-           if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = null;
+      // Cleanup function
+      return () => {
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel(); // Stop any ongoing speech
+          if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = null; // Remove listener
           }
         }
-         if (currentUtteranceRef.current) {
+        if (currentUtteranceRef.current) {
           currentUtteranceRef.current.onend = null;
           currentUtteranceRef.current.onerror = null;
           currentUtteranceRef.current = null;
@@ -190,6 +191,7 @@ export default function PersonalizedGuidanceForm() {
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
       setCurrentIssue('');
+      // formRef.current?.reset(); // Resetting might clear the hidden conversation history field too soon if not careful
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -208,6 +210,7 @@ export default function PersonalizedGuidanceForm() {
     }
   }, [conversationHistory]);
 
+
   const handleSpeak = (text: string, messageKey: string) => {
     if (!speechSynthesisSupported) {
       toast({ title: "Speech Not Supported", description: "Your browser does not support speech synthesis.", variant: "destructive" });
@@ -216,28 +219,28 @@ export default function PersonalizedGuidanceForm() {
 
     if (speakingMessageKey === messageKey) { 
       window.speechSynthesis.cancel();
-      if(currentUtteranceRef.current) {
+      if(currentUtteranceRef.current) { // Check if ref has an utterance
           currentUtteranceRef.current.onend = null; 
           currentUtteranceRef.current.onerror = null;
       }
       setSpeakingMessageKey(null);
-      currentUtteranceRef.current = null;
+      currentUtteranceRef.current = null; // Clear the ref
       return;
     }
     
-    window.speechSynthesis.cancel(); 
-     if(currentUtteranceRef.current) { 
+    window.speechSynthesis.cancel(); // Stop any other ongoing speech
+     if(currentUtteranceRef.current) { // Clean up previous utterance's listeners
         currentUtteranceRef.current.onend = null;
         currentUtteranceRef.current.onerror = null;
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
-    currentUtteranceRef.current = utterance; 
+    currentUtteranceRef.current = utterance; // Store the new utterance
 
     let selectedVoice: SpeechSynthesisVoice | null = null;
     if (availableVoices.length > 0) {
         const enINFemaleVoices = availableVoices.filter(
-            (voice) => voice.lang === 'en-IN' && /female/i.test(voice.name || '') // Add checks for voice.name
+            (voice) => voice.lang === 'en-IN' && /female/i.test(voice.name || '')
         );
         if (enINFemaleVoices.length > 0) {
             selectedVoice = enINFemaleVoices.find(v => v.localService) || enINFemaleVoices[0];
@@ -246,14 +249,17 @@ export default function PersonalizedGuidanceForm() {
                 (voice) => voice.lang.startsWith('en') && /female/i.test(voice.name || '')
             );
             if (femaleVoices.length > 0) {
-                selectedVoice = femaleVoices.find(v => v.localService && /Google|Microsoft|Natural/i.test(v.name || '')) ||
+                // Try to find common "natural" sounding voices
+                selectedVoice = femaleVoices.find(v => v.localService && /Google|Microsoft|Natural|Ava/i.test(v.name || '')) ||
                                 femaleVoices.find(v => v.localService) ||
-                                femaleVoices.find(v => /Google|Microsoft|Natural/i.test(v.name || '')) ||
+                                femaleVoices.find(v => /Google|Microsoft|Natural|Ava/i.test(v.name || '')) ||
                                 femaleVoices[0];
             } else {
-                 selectedVoice = availableVoices.find(v => v.lang.startsWith('en') && v.localService) ||
-                                 availableVoices.find(v => v.lang.startsWith('en') && v.default) ||
-                                 availableVoices.find(v => v.lang.startsWith('en'));
+                 // Fallback to any English voice if no female voices are found
+                 const foundEnglishVoice = availableVoices.find(v => v.lang.startsWith('en') && v.localService) ||
+                                  availableVoices.find(v => v.lang.startsWith('en') && v.default) ||
+                                  availableVoices.find(v => v.lang.startsWith('en'));
+                 selectedVoice = foundEnglishVoice || null;
             }
         }
     }
@@ -267,19 +273,23 @@ export default function PersonalizedGuidanceForm() {
 
     utterance.onend = () => {
       setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
-      if (currentUtteranceRef.current === utterance) {
+      if (currentUtteranceRef.current === utterance) { // Ensure it's the same utterance
         currentUtteranceRef.current = null;
       }
     };
 
-    utterance.onerror = (event: SpeechSynthesisErrorEvent) => { 
-      const errorReason = (event as any).error || event.type;
+    utterance.onerror = (event: SpeechSynthesisErrorEvent) => { // Explicitly type event
+      const errorReason = (event as any).error || event.type; // event.type can be 'error'
+      
+      // Only log and toast if it's not an interruption
       if (errorReason !== 'interrupted' && errorReason !== 'canceled') {
-         console.error("Speech synthesis error event:", event, "Error details:", errorReason);
-         toast({ title: "Speech Error", description: "Could not play the audio.", variant: "destructive" });
+        console.error("Speech synthesis error event:", event, "Error details:", errorReason);
+        toast({ title: "Speech Error", description: "Could not play the audio.", variant: "destructive" });
       }
+      
+      // Only reset speakingMessageKey if this specific utterance was the one marked as speaking
       setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
-       if (currentUtteranceRef.current === utterance) {
+       if (currentUtteranceRef.current === utterance) { // Ensure it's the same utterance
         currentUtteranceRef.current = null;
       }
     };
@@ -313,11 +323,15 @@ export default function PersonalizedGuidanceForm() {
                     <div
                       key={messageKey}
                       className={cn(
-                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full break-words", 
+                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full", 
                         msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
                       )}
                     >
-                      <div className="flex items-center gap-2 w-full"> 
+                      <div className={cn(
+                        "flex items-start gap-2 w-full break-words",
+                         // msg.role === 'user' ? "justify-end ml-auto" : "justify-start mr-auto" // Removed side alignment
+                        )}
+                      > 
                           {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
                           <p className={cn(
                               "whitespace-pre-wrap flex-1",
