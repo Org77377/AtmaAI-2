@@ -70,7 +70,7 @@ export default function HomePage() {
     const trimmedName = nameInput.trim();
     if (trimmedName) {
       localStorage.setItem('userNameAatmAI', trimmedName);
-      localStorage.removeItem('aatmai-chat-history');
+      localStorage.removeItem('aatmai-chat-history'); // Clear chat history for new user session
       setUserName(trimmedName);
       setNameInput("");
       setIsAppLoading(true);
@@ -91,7 +91,7 @@ export default function HomePage() {
 
   if (!userName) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-12">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-12 px-4">
         <Card className="w-full max-w-md p-6 shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Welcome to AatmAI!</CardTitle>
@@ -189,10 +189,10 @@ export default function HomePage() {
           <CardHeader className="text-center">
             <div className="flex items-center justify-center gap-3 mb-2">
               <School className="w-10 h-10 text-primary" />
-              <CardTitle className="text-2xl md:text-3xl text-primary">AatmAI for Students: Your Academic Ally</CardTitle>
+              <CardTitle className="text-2xl md:text-3xl text-primary">AatmAI for Students: Your Academic & Career Ally</CardTitle>
             </div>
-            <CardDescription className="text-lg text-foreground">
-              Navigating student life? AatmAI offers support for study stress, career choices, and personal well-being.
+            <CardDescription className="text-lg text-foreground max-w-xl mx-auto">
+              Navigate student life with AatmAI! Get guidance for studies, find project ideas, help with project reports, prepare for interviews, get CV building tips, and more. Think of AatmAI as your study buddy and career guide.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
