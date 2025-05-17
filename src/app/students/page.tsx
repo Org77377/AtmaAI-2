@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,16 +31,16 @@ const studentFeatures = [
   { 
     title: "Interview Prep", 
     description: "Practice common interview questions and get tips for success with an AI interviewer.", 
-    icon: <Brain className="w-10 h-10 text-purple-500" />, // Changed icon
+    icon: <Brain className="w-10 h-10 text-purple-500" />,
     color: "purple",
-    href: "/students/interview-prep" // Updated href
+    href: "/students/interview-prep"
   },
   { 
     title: "Resume Building Tips", 
     description: "Learn how to craft a compelling resume that stands out.", 
     icon: <ScrollText className="w-10 h-10 text-red-500" />,
     color: "red",
-    href: "#" // Placeholder for future link
+    href: "/students/resume-tips" // Updated href
   },
   { 
     title: "Job Search for Freshers", 
@@ -93,9 +94,11 @@ export default function StudentSuccessHubPage() {
                     asChild
                     variant="ghost" 
                     className={`w-full justify-start text-${feature.color}-500 hover:text-${feature.color}-600 hover:bg-${feature.color}-500/10`}
+                    disabled={feature.href === "#"} // Disable button if href is '#'
                   >
                     <Link href={feature.href || "#"}>
-                      Explore <ArrowRight className="ml-2 h-4 w-4" />
+                      {feature.href === "#" ? "Coming Soon" : "Explore"}
+                      {feature.href !== "#" && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Link>
                   </Button>
                 </div>
@@ -107,3 +110,4 @@ export default function StudentSuccessHubPage() {
     </div>
   );
 }
+
