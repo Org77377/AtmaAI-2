@@ -34,11 +34,13 @@ function NotesFormFieldsAndStatus({
   currentTopic,
   setCurrentTopic,
   handleExplainMore,
+  currentDetailLevel, // Pass currentDetailLevel for the hidden input
 }: {
   state: NotesGeneratorFormState;
   currentTopic: string;
   setCurrentTopic: (topic: string) => void;
   handleExplainMore: () => void;
+  currentDetailLevel: 'concise' | 'detailed';
 }) {
   const { pending } = useFormStatus();
   const { toast } = useToast();
@@ -62,7 +64,7 @@ function NotesFormFieldsAndStatus({
         <Label htmlFor="topic" className="text-lg font-semibold">Topic for Notes</Label>
         <Textarea
           id="topic"
-          name="topic"
+          name="topic" // Ensure name attribute is present for form submission
           rows={3}
           placeholder="e.g., Photosynthesis, The French Revolution, Basics of Quantum Computing"
           className="mt-2"
@@ -73,12 +75,13 @@ function NotesFormFieldsAndStatus({
         />
         {state.fields?.topic && <p className="text-sm text-destructive mt-1">{state.fields.topic}</p>}
       </div>
-      <input type="hidden" name="detailLevel" value={state.detailLevel || 'concise'} />
+      {/* This hidden input will carry the detailLevel for the form submission */}
+      <input type="hidden" name="detailLevel" value={currentDetailLevel} />
 
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({state.detailLevel})...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({currentDetailLevel})...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             Please wait a moment. This can take a few seconds.
           </AlertDescription>
@@ -148,11 +151,8 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>('');
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
-
-  // To trigger re-submission for "Explain More"
-  const submitExplainMoreRef = useRef<HTMLButtonElement>(null);
+  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); // Initialize with topic from state if available
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
 
 
   useEffect(() => {
@@ -161,35 +161,32 @@ export default function StudentNotesGeneratorPage() {
         title: `Notes Generated! (${state.detailLevel})`,
         description: state.message,
       });
-      setCurrentTopic(state.topicSubmitted || ''); // Keep topic in textarea
-      setCurrentDetailLevel(state.detailLevel || 'concise');
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
         description: state.message,
         variant: "destructive",
       });
-      setCurrentTopic(state.topicSubmitted || ''); // Keep topic
-      setCurrentDetailLevel(state.detailLevel || 'concise');
     }
-  }, [state, toast]);
-
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    formData.set('detailLevel', currentDetailLevel); // Ensure correct detail level is submitted
-    formData.set('topic', currentTopic); // Ensure current topic is submitted
-    formAction(formData);
-  };
+    // Update local state from form action state
+    setCurrentTopic(state.topicSubmitted || currentTopic); // Keep current topic if new state doesn't provide one
+    setCurrentDetailLevel(state.detailLevel || currentDetailLevel);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, toast]); // currentTopic, currentDetailLevel removed from deps to avoid loop with their setters
   
   const handleExplainMore = () => {
     if (currentTopic) {
-      setCurrentDetailLevel('detailed');
-      // Programmatically submit the form for detailed notes
-      const formData = new FormData(formRef.current!);
-      formData.set('topic', currentTopic); // Ensure current topic is used
-      formData.set('detailLevel', 'detailed');
-      formAction(formData);
+      setCurrentDetailLevel('detailed'); // Set the detail level
+      // Programmatically submit the form. The hidden input for detailLevel
+      // will pick up the new currentDetailLevel value when the form re-renders.
+      // Need a brief delay to ensure state update for currentDetailLevel reflects in hidden input
+      // before form submission, or directly set the hidden input value if possible,
+      // but requestSubmit() relies on the current DOM state.
+      // A more robust way is to ensure the hidden input is updated by the state change.
+      // The requestSubmit will then pick up the correct value from the form.
+      setTimeout(() => { // Use setTimeout to allow state to update hidden input
+        formRef.current?.requestSubmit();
+      }, 0);
     } else {
       toast({
         title: "No Topic",
@@ -213,15 +210,15 @@ export default function StudentNotesGeneratorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Use action prop for form submission */}
+          <form ref={formRef} action={formAction} className="space-y-6">
             <NotesFormFieldsAndStatus
-              state={{...state, detailLevel: currentDetailLevel}} // Pass currentDetailLevel to sync button text
+              state={state} // Pass the whole state down
               currentTopic={currentTopic}
               setCurrentTopic={setCurrentTopic}
               handleExplainMore={handleExplainMore}
+              currentDetailLevel={currentDetailLevel} // Pass currentDetailLevel for the hidden input
             />
-             {/* Hidden submit button for programmatic submission, not strictly needed if formAction is called directly with FormData */}
-            <button type="submit" ref={submitExplainMoreRef} style={{ display: 'none' }}>Submit for Explain More</button>
             <SubmitButton detailLevel={currentDetailLevel} />
           </form>
         </CardContent>
@@ -229,3 +226,4 @@ export default function StudentNotesGeneratorPage() {
     </div>
   );
 }
+
