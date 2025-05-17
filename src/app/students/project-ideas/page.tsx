@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { handleGenerateProjectIdeas, type ProjectIdeasFormState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Lightbulb, Sparkles, Info, FileText } from 'lucide-react';
+import { Loader2, AlertTriangle, Lightbulb, Sparkles, Info, FileText } from 'lucide-react'; // Ensured Loader2 and Sparkles are imported
 import type { GenerateProjectIdeasInput } from '@/ai/flows/generate-project-ideas-flow';
 
 const initialState: ProjectIdeasFormState = {
