@@ -121,7 +121,7 @@ function NotesFormFieldsAndStatus({
               </div>
             </CardHeader>
             <CardContent>
-                <pre className="whitespace-pre-wrap font-sans text-sm bg-muted p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
+                <pre className="w-full whitespace-pre-wrap font-sans text-base bg-muted p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
                     {state.notes}
                 </pre>
                 <Alert variant="default" className="mt-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
@@ -151,8 +151,8 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(''); 
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
+  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); 
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
 
   useEffect(() => {
     // Initialize from state on first load or after action completes
@@ -183,8 +183,6 @@ export default function StudentNotesGeneratorPage() {
   const handleExplainMore = () => {
     if (currentTopic) {
       setCurrentDetailLevel('detailed'); 
-      // Use a timeout to ensure the state update for currentDetailLevel propagates
-      // to the hidden input field before the form is submitted.
       setTimeout(() => {
         if (formRef.current) {
           formRef.current.requestSubmit();

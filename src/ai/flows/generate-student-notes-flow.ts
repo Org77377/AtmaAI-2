@@ -53,17 +53,18 @@ const prompt = ai.definePrompt({
     - Avoid lengthy theoretical explanations. The goal is a quick, effective summary.
     - Highlight **key terms** using markdown (e.g., **bold**). Use markdown for subheadings if necessary (e.g., ## Subheading).
     - Frame these notes as "a strong starting point for exam revision" or "a helpful summary of core concepts for exams." Do NOT claim they are definitively "enough" for an exam.
-    - Organize points logically for easy understanding and revision.
+    - Organize points logically for easy understanding and revision. Use clear, simple language.
   - If Detail Level is 'detailed':
     - Provide a **comprehensive, in-depth explanation** of the topic.
     - Expand on the key concepts, explain underlying principles, and provide examples if applicable.
     - Structure the explanation logically with clear paragraphs and headings/subheadings where appropriate (using markdown, e.g., ## Heading, ### Subheading).
-    - Use Markdown-style lists for enumerations. AVOID using '*' for bullet points.
+    - Use Markdown-style lists for enumerations. AVOID using '*' for bullet points. Use clear, simple language.
 
   General Style for Both Levels:
   - Notes should be clear, factual, and objective.
   - Ensure the output is a single string containing the formatted notes.
   - If the topic is very broad, try to cover the most critical aspects first.
+  - Use hyphens (-) or numbered lists (1., 2.) for bullet points. Do NOT use asterisks (*).
 
   Example Output Format (Concise - using hyphens for bullets):
   [Brief Introduction to Topic - one sentence]
