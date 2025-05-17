@@ -9,7 +9,19 @@ import { CheckCircle, Contact, Edit3, FileText, LayoutGrid, Lightbulb, ListCheck
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-const resumeTipsData = [
+interface ResumeTip {
+  title: string;
+  details: string;
+  example?: string; // Make example optional
+}
+
+interface ResumeCategory {
+  category: string;
+  icon: React.ReactElement;
+  tips: ResumeTip[];
+}
+
+const resumeTipsData: ResumeCategory[] = [
   {
     category: 'Essential Sections',
     icon: <FileText className="w-6 h-6 text-blue-500" />,
@@ -64,7 +76,7 @@ const resumeTipsData = [
   },
 ];
 
-const commonMistakesData = [
+const commonMistakesData: ResumeCategory[] = [
   {
     category: 'Common Resume Mistakes to Avoid',
     icon: <AlertTriangle className="w-6 h-6 text-orange-500" />,
@@ -90,7 +102,7 @@ const resumeFormats = [
 ];
 
 export default function ResumeBuildingTipsPage() {
-  const allResumeSections = [...resumeTipsData, ...commonMistakesData]; 
+  const allResumeSections: ResumeCategory[] = [...resumeTipsData, ...commonMistakesData]; 
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -112,13 +124,13 @@ export default function ResumeBuildingTipsPage() {
             <Accordion type="single" collapsible className="w-full">
               {allResumeSections.map((categoryData, index) => ( 
                 <AccordionItem value={`category-${index}`} key={index} className="border-b border-border last:border-b-0">
-                  <AccordionTrigger className="text-lg hover:no-underline py-4">
-                    <div className="flex items-center gap-3 text-left"> {/* Added text-left here */}
+                  <AccordionTrigger className="text-lg hover:no-underline py-4 text-left">
+                    <div className="flex items-center gap-3 text-left">
                       {categoryData.icon}
                       <span className="font-semibold">{categoryData.category}</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-4 space-y-3 text-left"> {/* Added text-left here */}
+                  <AccordionContent className="pt-2 pb-4 space-y-3 text-left">
                     {categoryData.tips.map((tip, tipIndex) => (
                       <Card key={tipIndex} className="bg-card p-4 shadow-sm border">
                         <h4 className="font-semibold text-md text-primary mb-1">{tip.title}</h4>
@@ -140,7 +152,7 @@ export default function ResumeBuildingTipsPage() {
             <h2 className="text-2xl font-semibold text-primary mb-4 flex items-center gap-2">
               <Contact className="w-7 h-7 text-primary" /> Common Resume Formats
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left"> {/* Added text-left here */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
               {resumeFormats.map((format, index) => (
                 <Card key={index} className="bg-card p-4 shadow-sm border flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
@@ -151,7 +163,7 @@ export default function ResumeBuildingTipsPage() {
                 </Card>
               ))}
             </div>
-             <Alert variant="default" className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-sm text-left"> {/* Added text-left here */}
+             <Alert variant="default" className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-sm text-left">
                 <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <AlertTitle className="font-semibold text-blue-700 dark:text-blue-300">Pro Tip</AlertTitle>
                 <AlertDescription className="text-blue-600 dark:text-blue-400">
@@ -169,7 +181,7 @@ export default function ResumeBuildingTipsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4 text-left"> {/* Added text-left here */}
+                <p className="text-muted-foreground mb-4 text-left">
                   Starting with a good template can save you time and help you structure your resume professionally. Microsoft offers a variety of free resume templates you can explore.
                 </p>
               </CardContent>
@@ -189,4 +201,3 @@ export default function ResumeBuildingTipsPage() {
     </div>
   );
 }
-
