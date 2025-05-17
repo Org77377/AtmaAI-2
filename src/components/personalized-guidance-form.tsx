@@ -143,14 +143,10 @@ export default function PersonalizedGuidanceForm() {
         const availableVoices = window.speechSynthesis.getVoices();
         if (availableVoices.length > 0) {
           setVoices(availableVoices);
-          // Once voices are loaded, no need to listen for this event anymore for this session
-          // unless voices can change dynamically in a way that requires re-querying.
-          // For simplicity, we can remove it after first successful load.
-          // window.speechSynthesis.onvoiceschanged = null; 
         }
       };
-      loadVoices(); // Try to load immediately
-      if (window.speechSynthesis.getVoices().length === 0) { // If not loaded yet, set up listener
+      loadVoices(); 
+      if (window.speechSynthesis.getVoices().length === 0) { 
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
     } else {
@@ -172,7 +168,6 @@ export default function PersonalizedGuidanceForm() {
       }
     }
     return () => {
-      // Cleanup: cancel any ongoing speech and remove listeners when component unmounts
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = null;
         window.speechSynthesis.cancel(); 
@@ -218,14 +213,12 @@ export default function PersonalizedGuidanceForm() {
       return;
     }
 
-    // If this message is already speaking, stop it.
     if (speakingMessageKey === messageKey) { 
       window.speechSynthesis.cancel();
       setSpeakingMessageKey(null);
       return;
     }
 
-    // If any other message is speaking, cancel it first.
     window.speechSynthesis.cancel(); 
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -242,10 +235,10 @@ export default function PersonalizedGuidanceForm() {
 
     if (!selectedVoice) {
       const knownFemaleVoiceNames = [
-        "Microsoft Zira Desktop - English (United States)", "Microsoft Zira - English (United States)", // Common Windows
-        "Samantha", "Karen", "Tessa", "Moira", "Susan", // Common Apple voices
-        "Google UK English Female", "Google US English", // Google voices (name might vary slightly)
-        "Female", // Generic term some browsers might use
+        "Microsoft Zira Desktop - English (United States)", "Microsoft Zira - English (United States)",
+        "Samantha", "Karen", "Tessa", "Moira", "Susan", 
+        "Google UK English Female", "Google US English", 
+        "Female", 
       ];
       const preferredFemaleEnglishVoices = voices.filter(voice =>
         voice.lang.startsWith('en') &&
@@ -275,18 +268,15 @@ export default function PersonalizedGuidanceForm() {
       setSpeakingMessageKey(messageKey);
     };
     utterance.onend = () => {
-      // Check if this specific message was the one supposed to be ending
       setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
     };
-    utterance.onerror = (event: SpeechSynthesisErrorEvent) => { // Explicitly type event
-      const errorReason = (event as any).error || event.type; // event.type can be 'error'
-      console.error("Speech synthesis error event:", event, "Error details:", errorReason);
-      
-      // Only reset speakingMessageKey if this specific utterance was the one marked as speaking
+    utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
+      const errorReason = (event as any).error || event.type;
+
       setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
 
-      // Do not show toast for "interrupted" or "canceled" errors as they are often due to user action (e.g. clicking stop or another speak button)
       if (errorReason !== 'interrupted' && errorReason !== 'canceled') {
+        console.error("Speech synthesis error event:", event, "Error details:", errorReason);
         toast({
           title: "Speech Error",
           description: "Could not play the audio. Your browser might have encountered an issue.",
@@ -325,11 +315,11 @@ export default function PersonalizedGuidanceForm() {
                     <div
                       key={messageKey}
                       className={cn(
-                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full", // Removed items-start, gap-2 for direct stacking
+                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full", 
                         msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
                       )}
                     >
-                      <div className="flex items-center gap-2 w-full break-words"> {/* Added break-words */}
+                      <div className="flex items-center gap-2 w-full break-words"> 
                           {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
                           <p className={cn(
                               "whitespace-pre-wrap flex-1",
