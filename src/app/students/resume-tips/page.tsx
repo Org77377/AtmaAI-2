@@ -3,9 +3,11 @@
 'use client';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, Contact, Edit3, FileText, LayoutGrid, Lightbulb, ListChecks, Sparkles, Star, Target, UserCheck, Zap, AlertTriangle } from 'lucide-react'; // Added AlertTriangle
+import { CheckCircle, Contact, Edit3, FileText, LayoutGrid, Lightbulb, ListChecks, Sparkles, Star, Target, UserCheck, Zap, AlertTriangle, ExternalLink, FileSearch } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const resumeTipsData = [
   {
@@ -52,7 +54,7 @@ const resumeTipsData = [
   },
   {
     category: 'General Advice',
-    icon: <Lightbulb className="w-6 h-6 text-red-500" />, // Changed icon color class
+    icon: <Lightbulb className="w-6 h-6 text-red-500" />,
     tips: [
       { title: 'Be Honest', details: 'Never falsify information on your resume. Integrity is crucial.' },
       { title: 'Focus on Relevance', details: 'Prioritize information that is directly relevant to the jobs you are applying for.' },
@@ -88,7 +90,7 @@ const resumeFormats = [
 ];
 
 export default function ResumeBuildingTipsPage() {
-  const allResumeSections = [...resumeTipsData, ...commonMistakesData]; // Combine all sections
+  const allResumeSections = [...resumeTipsData, ...commonMistakesData]; 
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
@@ -108,7 +110,7 @@ export default function ResumeBuildingTipsPage() {
               <Target className="w-7 h-7 text-primary" /> Key Resume Guidance
             </h2>
             <Accordion type="single" collapsible className="w-full">
-              {allResumeSections.map((categoryData, index) => ( // Use combined array
+              {allResumeSections.map((categoryData, index) => ( 
                 <AccordionItem value={`category-${index}`} key={index} className="border-b border-border last:border-b-0">
                   <AccordionTrigger className="text-lg hover:no-underline py-4">
                     <div className="flex items-center gap-3">
@@ -157,6 +159,31 @@ export default function ResumeBuildingTipsPage() {
                 </AlertDescription>
             </Alert>
           </section>
+
+          <section>
+            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-primary/20">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <FileSearch className="w-8 h-8 text-primary" />
+                  <CardTitle className="text-xl text-primary">Looking for Templates?</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Starting with a good template can save you time and help you structure your resume professionally. Microsoft offers a variety of free resume templates you can explore.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button asChild size="lg" className="w-full">
+                  <Link href="https://create.microsoft.com/en-us/templates/resumes" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-5 w-5" />
+                    Explore Microsoft Resume Templates
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          </section>
+
         </CardContent>
       </Card>
     </div>
