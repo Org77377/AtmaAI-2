@@ -3,55 +3,62 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NotebookText, Lightbulb, FileText, Users, ScrollText, Briefcase, Bell, GraduationCap, ArrowRight, Brain } from 'lucide-react';
+import { NotebookText, Lightbulb, FileText, Users, ScrollText, Briefcase, Bell, GraduationCap, ArrowRight, Brain, Cpu } from 'lucide-react';
 import Link from 'next/link';
 
 const studentFeatures = [
-  { 
-    title: "Student AI for Notes", 
-    description: "Summarize, organize, and get insights from your study notes.", 
+  {
+    title: "Student AI for Notes",
+    description: "Summarize, organize, and get insights from your study notes.",
     icon: <NotebookText className="w-10 h-10 text-blue-500" />,
     color: "blue",
     href: "/students/notes-generator"
   },
-  { 
-    title: "Project Idea Generation", 
-    description: "Brainstorm innovative project ideas for your assignments and capstones.", 
+  {
+    title: "Project Idea Generation",
+    description: "Brainstorm innovative project ideas for your assignments and capstones.",
     icon: <Lightbulb className="w-10 h-10 text-yellow-500" />,
     color: "yellow",
     href: "/students/project-ideas"
   },
-  { 
-    title: "Project Report Help", 
-    description: "Get assistance in structuring and writing your project reports.", 
+  {
+    title: "Project Report Help",
+    description: "Get assistance in structuring and writing your project reports.",
     icon: <FileText className="w-10 h-10 text-green-500" />,
     color: "green",
     href: "/students/project-report"
   },
-  { 
-    title: "Interview Prep", 
-    description: "Practice common interview questions and get tips for success with an AI interviewer.", 
+  {
+    title: "Interview Prep",
+    description: "Practice common interview questions and get tips for success with an AI interviewer.",
     icon: <Brain className="w-10 h-10 text-purple-500" />,
     color: "purple",
     href: "/students/interview-prep"
   },
-  { 
-    title: "Resume Building Tips", 
-    description: "Learn how to craft a compelling resume that stands out.", 
+  {
+    title: "Resume Building Tips",
+    description: "Learn how to craft a compelling resume that stands out.",
     icon: <ScrollText className="w-10 h-10 text-red-500" />,
     color: "red",
-    href: "/students/resume-tips" // Updated href
+    href: "/students/resume-tips"
   },
-  { 
-    title: "Job Search for Freshers", 
-    description: "Find resources and strategies for your first job hunt.", 
+  {
+    title: "Useful AI Tools",
+    description: "Discover AI-powered tools that can help with research, writing, and learning.",
+    icon: <Cpu className="w-10 h-10 text-cyan-500" />,
+    color: "cyan",
+    href: "#" // Placeholder for future link
+  },
+  {
+    title: "Job Search for Freshers",
+    description: "Find resources and strategies for your first job hunt (Feature Coming Soon).",
     icon: <Briefcase className="w-10 h-10 text-indigo-500" />,
     color: "indigo",
     href: "#" // Placeholder for future link
   },
-  { 
-    title: "Exam Notifications & Prep", 
-    description: "Stay updated on exam schedules and get preparation guidance (Feature Coming Soon).", 
+  {
+    title: "Exam Notifications & Prep",
+    description: "Stay updated on exam schedules and get preparation guidance (Feature Coming Soon).",
     icon: <Bell className="w-10 h-10 text-pink-500" />,
     color: "pink",
     href: "#" // Placeholder for future link
@@ -76,23 +83,23 @@ export default function StudentSuccessHubPage() {
         <CardContent className="p-6 md:p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {studentFeatures.map((feature) => (
-              <Card 
-                key={feature.title} 
+              <Card
+                key={feature.title}
                 className={`shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between border-l-4 border-${feature.color}-500`}
               >
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     {feature.icon}
-                    <CardTitle className={`text-xl text-${feature.color}-600`}>{feature.title}</CardTitle>
+                    <CardTitle className={`text-xl text-${feature.color}-600 dark:text-${feature.color}-400`}>{feature.title}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </CardContent>
                 <div className="p-4 pt-0">
-                  <Button 
+                  <Button
                     asChild
-                    variant="ghost" 
+                    variant="ghost"
                     className={`w-full justify-start text-${feature.color}-500 hover:text-${feature.color}-600 hover:bg-${feature.color}-500/10`}
                     disabled={feature.href === "#"} // Disable button if href is '#'
                   >
@@ -110,4 +117,3 @@ export default function StudentSuccessHubPage() {
     </div>
   );
 }
-
