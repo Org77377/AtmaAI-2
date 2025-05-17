@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react';
+import { Sparkles, LogOut, Menu, Bookmark, Sun, Moon } from 'lucide-react'; // Added Sun, Moon
 import type { NavItemType } from '@/components/layout/main-nav';
 import { MainNav } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -13,18 +13,19 @@ import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-
+// Removed useIsMobile import as it's not directly used here
 
 const navItems: NavItemType[] = [
   { href: `/`, label: "Home" },
   { href: `/guidance`, label: "Chat" },
   { href: `/stories`, label: "Stories" },
+  { href: `/quotes/saved`, label: "Saved Quotes" }, // Added to base nav items
   { href: `/about`, label: "About Us" },
 ];
 
 const mobileOnlyNavItems: NavItemType[] = [
-    { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
+    // Saved Quotes is now part of the main navItems, so this can be empty or adjusted
+    // { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
 ];
 
 
@@ -33,14 +34,13 @@ export default function Header() {
   const pathname = usePathname();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isMobile = useIsMobile(); // For conditional rendering logic if needed for other parts
 
   // Combine nav items for mobile menu
-  const allNavItems = [...navItems, ...mobileOnlyNavItems];
+  const allNavItemsForMobile = [...navItems]; // mobileOnlyNavItems can be merged if it has distinct items
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('userNameAatmAI');
+      localStorage.removeItem('userNameAatmAI'); // Corrected key
       localStorage.removeItem('aatmAI-chat-history');
       toast({
         title: "See Ya!",
@@ -52,25 +52,12 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95"> {/* Reverted: removed backdrop-blur-sm, changed bg opacity */}
       <div className="container flex h-16 items-center px-4">
-        <Link href={`/`} className="mr-4 md:mr-8 flex items-baseline space-x-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <div>
-            <span className="font-bold text-lg">AatmAI</span>
-            <span className="ml-1.5 text-xs text-muted-foreground">your AI therapist</span>
-          </div>
-        </Link>
-
-        <div className="hidden md:flex md:flex-grow">
-         <MainNav navItems={navItems} currentLocale="en" /> {/* Added currentLocale, assuming 'en' for now */}
-        </div>
-
-        <div className="flex flex-1 items-center justify-end space-x-1 md:hidden">
-           <ThemeToggle />
+        <div className="flex items-center md:hidden"> {/* Container for mobile menu trigger and theme toggle */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="mr-2">
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -88,7 +75,7 @@ export default function Header() {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
-                {allNavItems.map((item) => (
+                {allNavItemsForMobile.map((item) => (
                   <SheetClose asChild key={item.href}>
                      <Link
                        href={item.href}
@@ -115,6 +102,19 @@ export default function Header() {
               </div>
             </SheetContent>
           </Sheet>
+          <ThemeToggle /> {/* Moved ThemeToggle here for mobile */}
+        </div>
+
+        <Link href={`/`} className="mr-4 md:mr-8 flex items-baseline space-x-2">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <div>
+            <span className="font-bold text-lg">AatmAI</span>
+            <span className="ml-1.5 text-xs text-muted-foreground">your AI therapist</span>
+          </div>
+        </Link>
+
+        <div className="hidden md:flex md:flex-grow">
+         <MainNav navItems={navItems} currentLocale="en" />
         </div>
 
         <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto">
