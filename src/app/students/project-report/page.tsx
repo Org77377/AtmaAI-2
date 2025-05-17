@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { handleGenerateProjectReport, type ProjectReportFormState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, FileText, Sparkles, Copy, Info, RotateCcw } from 'lucide-react';
+import { Loader2, AlertTriangle, FileText, Sparkles, Copy, Info, RotateCcw, PencilRuler } from 'lucide-react';
 import type { GenerateProjectReportInput } from '@/ai/flows/generate-project-report-flow';
 
 const initialFormInputState: Partial<GenerateProjectReportInput> = {
@@ -34,10 +34,14 @@ function ProjectReportFormFieldsAndStatus({
   state,
   currentInput,
   onInputChange,
+  showInitialPrompt,
+  onUserInput, // New prop to clear initial prompt
 }: {
   state: ProjectReportFormState;
   currentInput: Partial<GenerateProjectReportInput>;
   onInputChange: (field: keyof GenerateProjectReportInput, value: string) => void;
+  showInitialPrompt: boolean;
+  onUserInput: () => void;
 }) {
   const { pending } = useFormStatus();
   const { toast } = useToast();
@@ -61,6 +65,16 @@ function ProjectReportFormFieldsAndStatus({
 
   return (
     <>
+      {showInitialPrompt && !state.report?.reportContent && !pending && (
+        <Alert className="mb-6 bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-700">
+          <PencilRuler className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+          <AlertTitle className="text-sky-700 dark:text-sky-300">Start Your Report</AlertTitle>
+          <AlertDescription className="text-sky-600 dark:text-sky-400">
+            Please enter your project topic and details to generate a new report.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {pending && (
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
@@ -81,7 +95,10 @@ function ProjectReportFormFieldsAndStatus({
           required
           disabled={pending}
           value={currentInput.projectTopic || ''}
-          onChange={(e) => onInputChange('projectTopic', e.target.value)}
+          onChange={(e) => {
+            onInputChange('projectTopic', e.target.value);
+            onUserInput(); // Clear initial prompt on input
+          }}
         />
         {state.fields?.projectTopic && <p className="text-sm text-destructive mt-1">{state.fields.projectTopic}</p>}
       </div>
@@ -97,7 +114,10 @@ function ProjectReportFormFieldsAndStatus({
           required
           disabled={pending}
           value={currentInput.techStackDetails || ''}
-          onChange={(e) => onInputChange('techStackDetails', e.target.value)}
+          onChange={(e) => {
+            onInputChange('techStackDetails', e.target.value);
+            onUserInput(); // Clear initial prompt on input
+          }}
         />
         {state.fields?.techStackDetails && <p className="text-sm text-destructive mt-1">{state.fields.techStackDetails}</p>}
       </div>
@@ -108,14 +128,17 @@ function ProjectReportFormFieldsAndStatus({
           name="reportType"
           disabled={pending}
           value={currentInput.reportType || 'simple'}
-          onValueChange={(value) => onInputChange('reportType', value as 'simple' | 'detailed')}
+          onValueChange={(value) => {
+            onInputChange('reportType', value as 'simple' | 'detailed');
+            onUserInput(); // Clear initial prompt on input
+          }}
         >
           <SelectTrigger className="w-full mt-2">
             <SelectValue placeholder="Select report type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="simple">Simple Report (~2-3 pages)</SelectItem>
-            <SelectItem value="detailed">Detailed Report (~10-20 pages)</SelectItem>
+            <SelectItem value="detailed">Detailed Report (12000+ words)</SelectItem>
           </SelectContent>
         </Select>
         {state.fields?.reportType && <p className="text-sm text-destructive mt-1">{state.fields.reportType}</p>}
@@ -143,7 +166,7 @@ function ProjectReportFormFieldsAndStatus({
                 Generated Project Report for "{state.inputSubmitted?.projectTopic}"
               </CardTitle>
               <CardDescription>
-                Report Type: {state.inputSubmitted?.reportType === 'detailed' ? 'Detailed' : 'Simple'}
+                Report Type: {state.inputSubmitted?.reportType === 'detailed' ? 'Detailed (12000+ words aim)' : 'Simple'}
               </CardDescription>
             </div>
           </CardHeader>
@@ -191,7 +214,8 @@ function FormSubmitControls({ showStartNewButton, onStartNewReport }: { showStar
       </Button>
       {pending && (
         <p className="text-sm text-muted-foreground text-center">
-          Generating... please wait while your report is being generated.
+          <Loader2 className="inline-block mr-2 h-4 w-4 animate-spin" />
+          AatmAI is working... please wait. This may take a while for detailed reports.
         </p>
       )}
        {showStartNewButton && !pending && (
@@ -215,6 +239,7 @@ export default function ProjectReportGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateProjectReport, initialActionState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [showInitialPrompt, setShowInitialPrompt] = useState(true);
 
   const [currentInput, setCurrentInput] = useState<Partial<GenerateProjectReportInput>>(initialFormInputState);
 
@@ -225,15 +250,16 @@ export default function ProjectReportGeneratorPage() {
           title: 'Report Generated!',
           description: state.message,
         });
+        setShowInitialPrompt(false); // Hide prompt once report is generated
       } else if (state.isError) {
         toast({
           title: 'Error',
           description: state.message,
           variant: 'destructive',
         });
+         setShowInitialPrompt(false); // Hide prompt even on error if a submission was attempted
       }
     }
-    // Sync currentInput with submitted data if it exists, to repopulate form on error
     if (state.inputSubmitted) {
       setCurrentInput(state.inputSubmitted);
     }
@@ -244,14 +270,16 @@ export default function ProjectReportGeneratorPage() {
     value: string | 'simple' | 'detailed'
   ) => {
     setCurrentInput(prev => ({ ...prev, [field]: value }));
+    setShowInitialPrompt(false); // Hide prompt when user starts typing
   };
 
   const handleStartNewReport = () => {
     setCurrentInput(initialFormInputState);
     if (formRef.current) {
-      formRef.current.reset(); // Visually reset form fields
+      formRef.current.reset(); 
     }
-    setFormKey(prevKey => prevKey + 1); // Change key to remount form and reset useActionState
+    setFormKey(prevKey => prevKey + 1); 
+    setShowInitialPrompt(true); // Show prompt when form is reset
   };
   
   return (
@@ -272,6 +300,8 @@ export default function ProjectReportGeneratorPage() {
               state={state}
               currentInput={currentInput}
               onInputChange={handleInputChange}
+              showInitialPrompt={showInitialPrompt}
+              onUserInput={() => setShowInitialPrompt(false)}
             />
             <FormSubmitControls 
               showStartNewButton={!!state.report?.reportContent && !state.isError}
