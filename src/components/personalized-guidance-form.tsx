@@ -73,7 +73,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required={conversationHistoryLength === 0} // Mood is required only if it's the first message
+              required={conversationHistoryLength === 0}
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -143,12 +143,11 @@ export default function PersonalizedGuidanceForm() {
         const availableVoices = window.speechSynthesis.getVoices();
         if (availableVoices.length > 0) {
           setVoices(availableVoices);
-          // Unsubscribe if voices are loaded, to prevent memory leaks if component unmounts
-          window.speechSynthesis.onvoiceschanged = null;
+          window.speechSynthesis.onvoiceschanged = null; 
         }
       };
       loadVoices();
-      if (window.speechSynthesis.getVoices().length === 0) { // If voices not immediately available
+      if (window.speechSynthesis.getVoices().length === 0) { 
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
     } else {
@@ -169,11 +168,10 @@ export default function PersonalizedGuidanceForm() {
         localStorage.removeItem('aatmAI-chat-history');
       }
     }
-     // Cleanup function to remove the event listener if the component unmounts
     return () => {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = null;
-        window.speechSynthesis.cancel(); // Stop any speech on unmount
+        window.speechSynthesis.cancel(); 
       }
     };
   }, []);
@@ -188,7 +186,8 @@ export default function PersonalizedGuidanceForm() {
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
       setCurrentIssue('');
-      formRef.current?.reset(); // Reset profile and mood fields if they were visible
+      // formRef.current?.reset(); // Reset profile and mood fields if they were visible - this line caused an issue when these fields are hidden.
+      // Instead of resetting the whole form, just ensure the issue field is cleared, which is already done.
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -217,34 +216,73 @@ export default function PersonalizedGuidanceForm() {
       return;
     }
 
-    if (speakingMessageKey === messageKey) { // If this message is already speaking, stop it
+    if (speakingMessageKey === messageKey) { 
       window.speechSynthesis.cancel();
       setSpeakingMessageKey(null);
       return;
     }
 
-    window.speechSynthesis.cancel(); // Stop any other ongoing speech
+    window.speechSynthesis.cancel(); 
 
     const utterance = new SpeechSynthesisUtterance(text);
 
-    let selectedVoice = null;
-    const preferredVoices = [
-      "Google US English", "Microsoft Zira Desktop - English (United States)", "Microsoft David Desktop - English (United States)",
-      "Samantha", "Alex", "Google UK English Female", "Google UK English Male",
-    ];
-    const localVoices = voices.filter(voice => voice.lang.startsWith('en') && voice.localService);
-    for (const name of preferredVoices) {
-      selectedVoice = localVoices.find(voice => voice.name === name) || null;
-      if (selectedVoice) break;
+    let selectedVoice: SpeechSynthesisVoice | null = null;
+
+    // 1. Prioritize 'en-IN' female voices if available
+    const enInFemaleVoices = voices.filter(
+      (voice) => voice.lang.toLowerCase() === 'en-in' &&
+                  (voice.name.toLowerCase().includes('female') || (voice as any).gender?.toLowerCase() === 'female')
+    );
+    if (enInFemaleVoices.length > 0) {
+      selectedVoice = enInFemaleVoices.find(v => v.localService) || enInFemaleVoices[0];
     }
-    if (!selectedVoice && localVoices.length > 0) selectedVoice = localVoices[0];
+
+    // 2. If not, try specific known high-quality female English voices
     if (!selectedVoice) {
-      const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
-      if (englishVoices.length > 0) {
-          selectedVoice = englishVoices.find(voice => voice.name.includes("English")) || englishVoices[0];
+      const knownFemaleVoiceNames = [
+        "Microsoft Zira Desktop - English (United States)",
+        "Samantha", 
+        "Google UK English Female",
+        "Google US English Female", 
+        "Tessa", 
+        "Allison", 
+        "Susan", // Another common Apple voice
+        "Moira", // Apple Ireland
+      ];
+      const preferredFemaleEnglishVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        knownFemaleVoiceNames.some(name => voice.name.includes(name))
+      );
+      if (preferredFemaleEnglishVoices.length > 0) {
+        selectedVoice = preferredFemaleEnglishVoices.find(v => v.localService) || preferredFemaleEnglishVoices[0];
       }
     }
-    if (selectedVoice) utterance.voice = selectedVoice;
+
+    // 3. If still not found, try any voice with "female" in its name and is English
+    if (!selectedVoice) {
+      const genericFemaleEnglishVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        (voice.name.toLowerCase().includes('female') || (voice as any).gender?.toLowerCase() === 'female')
+      );
+      if (genericFemaleEnglishVoices.length > 0) {
+        selectedVoice = genericFemaleEnglishVoices.find(v => v.localService) || genericFemaleEnglishVoices[0];
+      }
+    }
+
+    // 4. Fallback: Use any English voice if no female voice could be specifically identified
+    if (!selectedVoice) {
+        const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+        if (englishVoices.length > 0) {
+            selectedVoice = englishVoices.find(v => v.localService) || 
+                            englishVoices.find(v => v.name.includes("Google")) || // Prefer Google voices
+                            englishVoices.find(v => v.name.includes("Microsoft")) || // Then Microsoft
+                            englishVoices[0];
+        }
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
 
     utterance.onstart = () => {
       setSpeakingMessageKey(messageKey);
@@ -253,7 +291,7 @@ export default function PersonalizedGuidanceForm() {
       setSpeakingMessageKey(null);
     };
     utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event);
+      console.error("Speech synthesis error event:", event, "Error details:", (event as any).error || "N/A");
       setSpeakingMessageKey(null);
       toast({
         title: "Speech Error",
@@ -293,7 +331,7 @@ export default function PersonalizedGuidanceForm() {
                       key={messageKey}
                       className={cn(
                         "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full",
-                        msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
+                        msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
                       )}
                     >
                       <div className="flex items-center gap-2 w-full break-words">
@@ -329,11 +367,6 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
-         {/* Profile and Mood fields are not directly submitted with each message after the first.
-            They are used by the AI flow if it's the beginning of a session.
-            The AI prompt has access to localStorage.getItem('userNameAatmAI') for the profile if needed
-            and the mood from the initial form submission in the action.
-          */}
         <FormFieldsAndStatus
           fields={state.fields}
           isError={state.isError}
