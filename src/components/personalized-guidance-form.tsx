@@ -73,7 +73,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required={conversationHistoryLength === 0}
+              required={conversationHistoryLength === 0} // Mood is required only if it's the first message
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -109,12 +109,12 @@ function FormFieldsAndStatus({
         </Alert>
       )}
 
-      {!pending && state.message && state.isError && !fields && (
+      {!pending && message && isError && !fields && (
         <Alert variant="destructive" className="mt-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>An Error Occurred</AlertTitle>
           <AlertDescription>
-            {state.message}
+            {message}
           </AlertDescription>
         </Alert>
       )}
@@ -188,6 +188,7 @@ export default function PersonalizedGuidanceForm() {
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
       setCurrentIssue('');
+      formRef.current?.reset(); // Reset profile and mood fields if they were visible
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -216,7 +217,7 @@ export default function PersonalizedGuidanceForm() {
       return;
     }
 
-    if (speakingMessageKey === messageKey) {
+    if (speakingMessageKey === messageKey) { // If this message is already speaking, stop it
       window.speechSynthesis.cancel();
       setSpeakingMessageKey(null);
       return;
@@ -289,7 +290,7 @@ export default function PersonalizedGuidanceForm() {
                   const isCurrentlySpeaking = speakingMessageKey === messageKey;
                   return (
                     <div
-                      key={index}
+                      key={messageKey}
                       className={cn(
                         "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full",
                         msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
@@ -328,15 +329,11 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
-        {/* Profile and Mood fields are only submitted if it's the first message */}
-        {conversationHistory.length === 0 && (
-          <>
-            <input type="hidden" name="profile" value={typeof window !== 'undefined' ? localStorage.getItem('userNameAatmAI') || "User" : "User"} />
-            <input type="hidden" name="mood" value="Not specified by user for initial message" />
-          </>
-        )}
-
-
+         {/* Profile and Mood fields are not directly submitted with each message after the first.
+            They are used by the AI flow if it's the beginning of a session.
+            The AI prompt has access to localStorage.getItem('userNameAatmAI') for the profile if needed
+            and the mood from the initial form submission in the action.
+          */}
         <FormFieldsAndStatus
           fields={state.fields}
           isError={state.isError}
@@ -345,10 +342,8 @@ export default function PersonalizedGuidanceForm() {
           currentIssue={currentIssue}
           setCurrentIssue={setCurrentIssue}
         />
-
         <SubmitButton />
       </form>
     </div>
   );
 }
-
