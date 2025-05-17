@@ -1,16 +1,16 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
-import { useFormStatus } from 'react-dom';
+import React, { useEffect, useRef } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleCurateStories, type StoriesFormState } from '@/app/stories/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Sparkles } from 'lucide-react'; // Removed CheckCircle
+import { Loader2, AlertTriangle, Sparkles } from 'lucide-react';
 
 const initialState: StoriesFormState = {
   message: '',
@@ -27,30 +27,21 @@ function SubmitButton() {
   );
 }
 
-export default function CuratedStoriesForm() {
-  const [state, formAction] = React.useActionState(handleCurateStories, initialState);
-  const { toast } = useToast();
+function StoryFormFieldsAndStatus({ 
+    fields, 
+    isError, 
+    message, 
+    stories 
+}: { 
+    fields?: Record<string, string>; 
+    isError?: boolean; 
+    message?: string; 
+    stories?: StoriesFormState['stories'];
+}) {
   const { pending } = useFormStatus();
 
-  useEffect(() => {
-    if (state.message && !pending) { 
-      if (state.isError) {
-        toast({
-          title: "Error",
-          description: state.message,
-          variant: "destructive",
-        });
-      } else if (state.stories) {
-        toast({
-          title: "Success",
-          description: state.message,
-        });
-      }
-    }
-  }, [state, pending, toast]);
-
   return (
-    <form action={formAction} className="space-y-6">
+    <>
       <div>
         <Label htmlFor="userProfile" className="text-lg font-semibold">Your Profile</Label>
         <Textarea
@@ -62,7 +53,7 @@ export default function CuratedStoriesForm() {
           required
           disabled={pending}
         />
-        {state.fields?.userProfile && <p className="text-sm text-destructive mt-1">{state.fields.userProfile}</p>}
+        {fields?.userProfile && <p className="text-sm text-destructive mt-1">{fields.userProfile}</p>}
       </div>
 
       <div>
@@ -76,7 +67,7 @@ export default function CuratedStoriesForm() {
           required
           disabled={pending}
         />
-        {state.fields?.currentChallenges && <p className="text-sm text-destructive mt-1">{state.fields.currentChallenges}</p>}
+        {fields?.currentChallenges && <p className="text-sm text-destructive mt-1">{fields.currentChallenges}</p>}
       </div>
       
       {pending && (
@@ -89,22 +80,20 @@ export default function CuratedStoriesForm() {
         </Alert>
       )}
 
-      {!pending && state.message && state.isError && !state.fields && (
+      {!pending && message && isError && !fields && (
          <Alert variant="destructive" className="mt-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>An Error Occurred</AlertTitle>
             <AlertDescription>
-              {state.message} Please try again. If the problem persists, AatmAI might be having trouble finding stories.
+              {message} Please try again. If the problem persists, AatmAI might be having trouble finding stories.
             </AlertDescription>
           </Alert>
       )}
 
-      <SubmitButton />
-
-      {!pending && state.stories?.stories && state.stories.stories.length > 0 && !state.isError && (
+      {!pending && stories?.stories && stories.stories.length > 0 && !isError && (
         <div className="mt-8 space-y-6">
           <h2 className="text-2xl font-semibold text-center text-primary">Inspiring Stories For You</h2>
-          {state.stories.stories.map((story, index) => (
+          {stories.stories.map((story, index) => (
             <Card key={index} className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
               <CardHeader>
                  <div className="flex items-center gap-2">
@@ -119,7 +108,7 @@ export default function CuratedStoriesForm() {
           ))}
         </div>
       )}
-      {!pending && state.stories?.stories && state.stories.stories.length === 0 && !state.isError && (
+      {!pending && stories?.stories && stories.stories.length === 0 && !isError && (
          <Alert className="mt-6">
             <Sparkles className="h-4 w-4" />
             <AlertTitle>No Stories Found</AlertTitle>
@@ -128,6 +117,47 @@ export default function CuratedStoriesForm() {
             </AlertDescription>
           </Alert>
       )}
+    </>
+  );
+}
+
+export default function CuratedStoriesForm() {
+  const [state, formAction] = useFormState(handleCurateStories, initialState);
+  const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    // This effect runs when 'state' changes, which happens after formAction completes
+    if (state.message) { 
+      if (state.isError) {
+        toast({
+          title: "Error",
+          description: state.message,
+          variant: "destructive",
+        });
+      } else if (state.stories) {
+        toast({
+          title: "Success",
+          description: state.message,
+        });
+        if (!state.stories.stories || state.stories.stories.length === 0) {
+          // If successful but no stories, don't reset form, so user can adjust
+        } else {
+          formRef.current?.reset(); // Reset form if stories are found
+        }
+      }
+    }
+  }, [state, toast]);
+
+  return (
+    <form ref={formRef} action={formAction} className="space-y-6">
+      <StoryFormFieldsAndStatus 
+        fields={state.fields}
+        isError={state.isError}
+        message={state.message}
+        stories={state.stories}
+      />
+      <SubmitButton />
     </form>
   );
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useFormState } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +22,7 @@ const initialState: GuidanceFormState = {
 };
 
 function SubmitButton() {
-  const { pending } = useFormState();
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
@@ -31,15 +31,101 @@ function SubmitButton() {
   );
 }
 
+function FormFieldsAndStatus({ 
+  fields, 
+  isError, 
+  message, 
+  conversationHistoryLength 
+}: { 
+  fields?: Record<string, string>; 
+  isError?: boolean; 
+  message?: string;
+  conversationHistoryLength: number;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <>
+      {conversationHistoryLength === 0 && (
+        <>
+          <div>
+            <Label htmlFor="profile" className="text-lg font-semibold">About You (Optional)</Label>
+            <Textarea
+              id="profile"
+              name="profile"
+              rows={3}
+              placeholder="A brief note about yourself can help AatmAI understand you better (e.g., student, working professional, facing a specific life phase)."
+              className="mt-2"
+              disabled={pending}
+            />
+            {fields?.profile && <p className="text-sm text-destructive mt-1">{fields.profile}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="mood" className="text-lg font-semibold">Your Current Mood</Label>
+            <Input
+              id="mood"
+              name="mood"
+              placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
+              className="mt-2"
+              required
+              disabled={pending}
+            />
+            {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
+          </div>
+        </>
+      )}
+
+      <div>
+        <Label htmlFor="issue" className="text-lg font-semibold">
+          {conversationHistoryLength === 0 ? "What's on your mind?" : "Your message to AatmAI:"}
+        </Label>
+        <Textarea
+          id="issue"
+          name="issue"
+          rows={conversationHistoryLength === 0 ? 5 : 3}
+          // value={currentIssue} // Managed by form reset or direct input
+          // onChange={(e) => setCurrentIssue(e.target.value)}
+          placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. AatmAI is here to listen without judgment."
+          className="mt-2"
+          required
+          disabled={pending}
+        />
+        {fields?.issue && <p className="text-sm text-destructive mt-1">{fields.issue}</p>}
+      </div>
+
+      {pending && (
+        <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
+          <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is thinking...</AlertTitle>
+          <AlertDescription className="text-blue-600 dark:text-blue-400">
+            Please wait a moment while AatmAI considers your thoughts.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!pending && message && isError && !fields && (
+        <Alert variant="destructive" className="mt-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>An Error Occurred</AlertTitle>
+          <AlertDescription>
+            {message}
+          </AlertDescription>
+        </Alert>
+      )}
+    </>
+  );
+}
+
+
 export default function PersonalizedGuidanceForm() {
-  const [state, formAction] = React.useActionState(handleGenerateGuidance, initialState); 
+  const [state, formAction] = useFormState(handleGenerateGuidance, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { pending } = useFormState();
-
+  
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
-  const [currentIssue, setCurrentIssue] = useState('');
+  // const [currentIssue, setCurrentIssue] = useState(''); // No longer needed here, form reset will handle
 
   useEffect(() => {
     const storedHistory = localStorage.getItem('aatmAI-chat-history');
@@ -59,7 +145,8 @@ export default function PersonalizedGuidanceForm() {
   }, []);
 
   useEffect(() => {
-    if (state.message && !pending) { 
+    // This effect runs when 'state' changes, which happens after formAction completes
+    if (state.message) { 
       if (state.isError) {
         toast({
           title: "Error",
@@ -74,11 +161,10 @@ export default function PersonalizedGuidanceForm() {
           setConversationHistory(state.updatedConversationHistory);
           localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
         }
-        setCurrentIssue(''); 
-        // formRef.current?.reset(); // Resetting form caused issues, currentIssue reset is enough
+        formRef.current?.reset(); // Reset the form, clearing the 'issue' textarea
       }
     }
-  }, [state, pending, toast]);
+  }, [state, toast]); 
   
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -126,12 +212,7 @@ export default function PersonalizedGuidanceForm() {
                     {msg.role === 'user' && <User className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
                   </div>
                 ))}
-                {pending && ( 
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 animate-pulse">
-                    <Bot className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-muted-foreground italic">AatmAI is typing...</p>
-                  </div>
-                )}
+                {/* Optimistic UI for pending state could be added here if desired */}
               </div>
             </ScrollArea>
           </CardContent>
@@ -140,80 +221,16 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
-
-        {conversationHistory.length === 0 && (
-          <>
-            <div>
-              <Label htmlFor="profile" className="text-lg font-semibold">About You (Optional)</Label>
-              <Textarea
-                id="profile"
-                name="profile"
-                rows={3}
-                placeholder="A brief note about yourself can help AatmAI understand you better (e.g., student, working professional, facing a specific life phase)."
-                className="mt-2"
-                disabled={pending}
-              />
-              {state.fields?.profile && <p className="text-sm text-destructive mt-1">{state.fields.profile}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="mood" className="text-lg font-semibold">Your Current Mood</Label>
-              <Input
-                id="mood"
-                name="mood"
-                placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
-                className="mt-2"
-                required
-                disabled={pending}
-              />
-              {state.fields?.mood && <p className="text-sm text-destructive mt-1">{state.fields.mood}</p>}
-            </div>
-          </>
-        )}
-
-
-        <div>
-          <Label htmlFor="issue" className="text-lg font-semibold">
-            {conversationHistory.length === 0 ? "What's on your mind?" : "Your message to AatmAI:"}
-          </Label>
-          <Textarea
-            id="issue"
-            name="issue"
-            rows={conversationHistory.length === 0 ? 5 : 3}
-            value={currentIssue}
-            onChange={(e) => setCurrentIssue(e.target.value)}
-            placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. AatmAI is here to listen without judgment."
-            className="mt-2"
-            required
-            disabled={pending}
-          />
-          {state.fields?.issue && <p className="text-sm text-destructive mt-1">{state.fields.issue}</p>}
-        </div>
         
+        <FormFieldsAndStatus 
+          fields={state.fields}
+          isError={state.isError}
+          message={state.message}
+          conversationHistoryLength={conversationHistory.length}
+        />
         
-        {pending && conversationHistory.length === 0 && ( 
-          <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-            <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is thinking...</AlertTitle>
-            <AlertDescription className="text-blue-600 dark:text-blue-400">
-              Please wait a moment while AatmAI considers your thoughts.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {!pending && state.message && state.isError && !state.fields && (
-           <Alert variant="destructive" className="mt-6">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>An Error Occurred</AlertTitle>
-              <AlertDescription>
-                {state.message}
-              </AlertDescription>
-            </Alert>
-        )}
-
         <SubmitButton />
       </form>
     </div>
   );
 }
-
