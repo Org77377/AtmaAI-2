@@ -48,30 +48,30 @@ const prompt = ai.definePrompt({
 
   Instructions:
   - If Detail Level is 'concise':
-    - Generate **highly concise, key-point-focused** notes primarily in bullet points or numbered lists.
+    - Generate **highly concise, key-point-focused** notes primarily using Markdown-style lists (e.g., using '-' or '1.' for items). AVOID using '*' for bullet points.
     - Focus strictly on the **most important concepts, definitions, and facts** relevant for exam preparation.
     - Avoid lengthy theoretical explanations. The goal is a quick, effective summary.
-    - Highlight **key terms** using markdown (e.g., **bold**).
+    - Highlight **key terms** using markdown (e.g., **bold**). Use markdown for subheadings if necessary (e.g., ## Subheading).
     - Frame these notes as "a strong starting point for exam revision" or "a helpful summary of core concepts for exams." Do NOT claim they are definitively "enough" for an exam.
     - Organize points logically for easy understanding and revision.
   - If Detail Level is 'detailed':
     - Provide a **comprehensive, in-depth explanation** of the topic.
     - Expand on the key concepts, explain underlying principles, and provide examples if applicable.
-    - Structure the explanation logically with clear paragraphs and headings/subheadings where appropriate (using markdown).
-    - This detailed explanation should elaborate significantly beyond the concise bullet points.
+    - Structure the explanation logically with clear paragraphs and headings/subheadings where appropriate (using markdown, e.g., ## Heading, ### Subheading).
+    - Use Markdown-style lists for enumerations. AVOID using '*' for bullet points.
 
   General Style for Both Levels:
   - Notes should be clear, factual, and objective.
   - Ensure the output is a single string containing the formatted notes.
   - If the topic is very broad, try to cover the most critical aspects first.
 
-  Example Output Format (Concise):
+  Example Output Format (Concise - using hyphens for bullets):
   [Brief Introduction to Topic - one sentence]
 
-  *   **Main Concept 1**: Brief explanation or definition.
-      *   Sub-point 1.1 (if essential)
-  *   **Key Fact 2**: Critical information.
-  *   Formula/Rule 3 (if applicable): [Formula] - Brief note on usage.
+  - **Main Concept 1**: Brief explanation or definition.
+    - Sub-point 1.1 (if essential)
+  - **Key Fact 2**: Critical information.
+  - Formula/Rule 3 (if applicable): [Formula] - Brief note on usage.
 
   Generate the notes now for the topic: {{{topic}}} with detail level: {{{detailLevel}}}.
   `,

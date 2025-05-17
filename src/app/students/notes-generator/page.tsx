@@ -34,7 +34,7 @@ function NotesFormFieldsAndStatus({
   currentTopic,
   setCurrentTopic,
   handleExplainMore,
-  currentDetailLevel, // Pass currentDetailLevel for the hidden input
+  currentDetailLevel, 
 }: {
   state: NotesGeneratorFormState;
   currentTopic: string;
@@ -64,7 +64,7 @@ function NotesFormFieldsAndStatus({
         <Label htmlFor="topic" className="text-lg font-semibold">Topic for Notes</Label>
         <Textarea
           id="topic"
-          name="topic" // Ensure name attribute is present for form submission
+          name="topic" 
           rows={3}
           placeholder="e.g., Photosynthesis, The French Revolution, Basics of Quantum Computing"
           className="mt-2"
@@ -75,7 +75,7 @@ function NotesFormFieldsAndStatus({
         />
         {state.fields?.topic && <p className="text-sm text-destructive mt-1">{state.fields.topic}</p>}
       </div>
-      {/* This hidden input will carry the detailLevel for the form submission */}
+      
       <input type="hidden" name="detailLevel" value={currentDetailLevel} />
 
       {pending && (
@@ -100,23 +100,23 @@ function NotesFormFieldsAndStatus({
 
       {!pending && state.notes && !state.isError && (
         <Card className="mt-8 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-x-2">
-                <div>
+            <CardHeader className="flex flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2">
+                <div className="flex-grow">
                     <CardTitle className="text-2xl text-primary">
                         {state.detailLevel === 'detailed' ? 'Detailed Explanation' : 'Concise Notes'} for "{state.topicSubmitted}"
                     </CardTitle>
                     <CardDescription>Review and use these notes for your study.</CardDescription>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center pt-2 sm:pt-0">
                     {state.detailLevel === 'concise' && (
-                        <Button variant="outline" size="sm" onClick={handleExplainMore} disabled={pending}>
+                        <Button variant="outline" size="sm" onClick={handleExplainMore} disabled={pending} className="w-full sm:w-auto">
                             <HelpCircle className="mr-2 h-4 w-4" />
                             Explain More
                         </Button>
                     )}
-                    <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending}>
+                    <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending} className="w-full sm:w-auto">
                         <Copy className="mr-2 h-4 w-4" />
-                        Copy
+                        Copy Notes
                     </Button>
                 </div>
             </CardHeader>
@@ -151,9 +151,8 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); // Initialize with topic from state if available
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
-
+  const [currentTopic, setCurrentTopic] = useState<string>(''); 
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -168,23 +167,23 @@ export default function StudentNotesGeneratorPage() {
         variant: "destructive",
       });
     }
-    // Update local state from form action state
-    setCurrentTopic(state.topicSubmitted || currentTopic); // Keep current topic if new state doesn't provide one
-    setCurrentDetailLevel(state.detailLevel || currentDetailLevel);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, toast]); // currentTopic, currentDetailLevel removed from deps to avoid loop with their setters
+    
+    // Update local state from form action state to preserve across re-renders if needed
+    if (state.topicSubmitted) {
+        setCurrentTopic(state.topicSubmitted);
+    }
+    if (state.detailLevel) {
+        setCurrentDetailLevel(state.detailLevel);
+    }
+
+  }, [state, toast]);
   
   const handleExplainMore = () => {
     if (currentTopic) {
-      setCurrentDetailLevel('detailed'); // Set the detail level
-      // Programmatically submit the form. The hidden input for detailLevel
-      // will pick up the new currentDetailLevel value when the form re-renders.
+      setCurrentDetailLevel('detailed'); 
       // Need a brief delay to ensure state update for currentDetailLevel reflects in hidden input
-      // before form submission, or directly set the hidden input value if possible,
-      // but requestSubmit() relies on the current DOM state.
-      // A more robust way is to ensure the hidden input is updated by the state change.
-      // The requestSubmit will then pick up the correct value from the form.
-      setTimeout(() => { // Use setTimeout to allow state to update hidden input
+      // before form submission.
+      setTimeout(() => {
         formRef.current?.requestSubmit();
       }, 0);
     } else {
@@ -195,7 +194,6 @@ export default function StudentNotesGeneratorPage() {
       });
     }
   };
-
 
   return (
     <div className="max-w-3xl mx-auto py-8">
@@ -210,14 +208,13 @@ export default function StudentNotesGeneratorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Use action prop for form submission */}
           <form ref={formRef} action={formAction} className="space-y-6">
             <NotesFormFieldsAndStatus
-              state={state} // Pass the whole state down
+              state={state} 
               currentTopic={currentTopic}
               setCurrentTopic={setCurrentTopic}
               handleExplainMore={handleExplainMore}
-              currentDetailLevel={currentDetailLevel} // Pass currentDetailLevel for the hidden input
+              currentDetailLevel={currentDetailLevel} 
             />
             <SubmitButton detailLevel={currentDetailLevel} />
           </form>
@@ -226,4 +223,3 @@ export default function StudentNotesGeneratorPage() {
     </div>
   );
 }
-
