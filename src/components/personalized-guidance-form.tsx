@@ -150,7 +150,7 @@ export default function PersonalizedGuidanceForm() {
   }, []);
 
   useEffect(() => {
-    if (state.message && !state.isError && state.guidance) { 
+    if (state.message && !state.isError && state.guidance) {
        toast({
         title: "AatmAI Responded!",
       });
@@ -158,7 +158,7 @@ export default function PersonalizedGuidanceForm() {
         setConversationHistory(state.updatedConversationHistory);
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
-      setCurrentIssue(''); 
+      setCurrentIssue('');
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -179,13 +179,15 @@ export default function PersonalizedGuidanceForm() {
 
   return (
     <div className="space-y-6">
-      <Alert variant="default" className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
-        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-        <AlertTitle className="font-semibold text-blue-700 dark:text-blue-300">Chat with AatmAI</AlertTitle>
-        <AlertDescription className="text-blue-600 dark:text-blue-400">
-          AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences and our conversation. Your privacy is respected; no personal data or conversation history is stored on our servers beyond your current session on this device.
-        </AlertDescription>
-      </Alert>
+      {conversationHistory.length === 0 && (
+        <Alert variant="default" className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
+          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="font-semibold text-blue-700 dark:text-blue-300">Chat with AatmAI</AlertTitle>
+          <AlertDescription className="text-blue-600 dark:text-blue-400">
+            AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences and our conversation. Your privacy is respected; no personal data or conversation history is stored on our servers beyond your current session on this device.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {conversationHistory.length > 0 && (
         <Card className="bg-background/50 border shadow-md">
@@ -193,19 +195,19 @@ export default function PersonalizedGuidanceForm() {
             <CardTitle className="text-lg text-primary">Our Conversation</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[300px] w-full pr-4" ref={scrollAreaRef}>
+            <ScrollArea className="h-[400px] w-full pr-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {conversationHistory.map((msg, index) => (
                   <div
                     key={index}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg shadow-sm text-sm w-full", // Applied w-full
-                      msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
+                      "flex items-start gap-3 p-3 rounded-lg shadow-sm text-sm w-full break-words", 
+                      msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
                     )}
                   >
                     {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
                     <p className={cn(
-                        "whitespace-pre-wrap flex-1", // Added flex-1 to allow text to take available space
+                        "whitespace-pre-wrap flex-1", 
                         msg.role === 'user' ? "text-foreground" : "text-foreground"
                       )}
                     >
@@ -222,11 +224,9 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
-        {/* Pass profile and mood as hidden fields if conversationHistory.length > 0 */}
-        {/* This is a simplification; ideally, profile/mood wouldn't be resubmitted or server action would handle it */}
         {conversationHistory.length > 0 && (
           <>
-            <input type="hidden" name="profile" value={localStorage.getItem('aatmAI-userName') || "User"} /> 
+            <input type="hidden" name="profile" value={localStorage.getItem('userNameAatmAI') || "User"} />
             <input type="hidden" name="mood" value="Continuing conversation" />
           </>
         )}
