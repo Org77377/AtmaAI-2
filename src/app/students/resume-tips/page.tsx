@@ -4,9 +4,8 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added this import
-import { CheckCircle, Contact, Edit3, FileText, LayoutGrid, Lightbulb, ListChecks, Sparkles, Star, Target, UserCheck, Zap } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle, Contact, Edit3, FileText, LayoutGrid, Lightbulb, ListChecks, Sparkles, Star, Target, UserCheck, Zap, AlertTriangle } from 'lucide-react'; // Added AlertTriangle
 
 const resumeTipsData = [
   {
@@ -53,12 +52,31 @@ const resumeTipsData = [
   },
   {
     category: 'General Advice',
-    icon: <Lightbulb className="w-6 h-6 text-red-500" />,
+    icon: <Lightbulb className="w-6 h-6 text-red-500" />, // Changed icon color class
     tips: [
       { title: 'Be Honest', details: 'Never falsify information on your resume. Integrity is crucial.' },
       { title: 'Focus on Relevance', details: 'Prioritize information that is directly relevant to the jobs you are applying for.' },
       { title: 'Get Feedback', details: 'Ask career counselors, mentors, professors, or peers to review your resume and provide constructive criticism.' },
       { title: 'Keywords are Key', details: 'Many companies use Applicant Tracking Systems (ATS) to scan resumes for keywords. Identify keywords from job descriptions and incorporate them naturally into your resume.' },
+    ],
+  },
+];
+
+const commonMistakesData = [
+  {
+    category: 'Common Resume Mistakes to Avoid',
+    icon: <AlertTriangle className="w-6 h-6 text-orange-500" />,
+    tips: [
+      { title: 'Typos and Grammatical Errors', details: 'Even small errors can make you look unprofessional. Proofread carefully and use tools.' },
+      { title: 'Generic, Non-Tailored Resume', details: 'Sending the same resume for every job application is ineffective. Customize it for each role.' },
+      { title: 'Focusing on Duties, Not Achievements', details: 'Instead of just listing tasks, highlight what you accomplished and the impact you made. Use quantifiable results.' },
+      { title: 'Unprofessional Email Address', details: 'Use a mature and professional email address (e.g., firstname.lastname@email.com).' },
+      { title: 'Inconsistent Formatting', details: 'Mismatched fonts, spacing, or bullet styles look sloppy. Maintain consistency throughout.' },
+      { title: 'Too Long or Too Short', details: 'Aim for one page if you have less than 10 years of experience. Avoid unnecessary fluff, but also provide enough detail for relevant experiences.' },
+      { title: 'Including Irrelevant Information', details: 'Hobbies or personal details that aren\'t relevant to the job can clutter your resume.' },
+      { title: 'Using Passive Language', details: 'Start bullet points with strong action verbs to sound more proactive and accomplished.' },
+      { title: 'Incorrect Contact Information', details: 'Double-check your phone number and email address for accuracy.' },
+      { title: 'Lying or Exaggerating', details: 'Honesty is crucial. Background checks can reveal discrepancies.' },
     ],
   },
 ];
@@ -70,6 +88,8 @@ const resumeFormats = [
 ];
 
 export default function ResumeBuildingTipsPage() {
+  const allResumeSections = [...resumeTipsData, ...commonMistakesData]; // Combine all sections
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <Card className="shadow-xl overflow-hidden">
@@ -85,10 +105,10 @@ export default function ResumeBuildingTipsPage() {
         <CardContent className="p-6 md:p-8 space-y-8">
           <section>
             <h2 className="text-2xl font-semibold text-primary mb-4 flex items-center gap-2">
-              <Target className="w-7 h-7 text-primary" /> Key Resume Tips
+              <Target className="w-7 h-7 text-primary" /> Key Resume Guidance
             </h2>
             <Accordion type="single" collapsible className="w-full">
-              {resumeTipsData.map((categoryData, index) => (
+              {allResumeSections.map((categoryData, index) => ( // Use combined array
                 <AccordionItem value={`category-${index}`} key={index} className="border-b border-border last:border-b-0">
                   <AccordionTrigger className="text-lg hover:no-underline py-4">
                     <div className="flex items-center gap-3">
