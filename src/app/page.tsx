@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -70,7 +69,7 @@ export default function HomePage() {
     const trimmedName = nameInput.trim();
     if (trimmedName) {
       localStorage.setItem('userNameAatmAI', trimmedName);
-      localStorage.removeItem('aatmai-chat-history'); // Clear chat history for new user session
+      localStorage.removeItem('aatmAI-chat-history'); // Clear chat history for new user session
       setUserName(trimmedName);
       setNameInput("");
       setIsAppLoading(true);
@@ -197,7 +196,7 @@ export default function HomePage() {
           </CardHeader>
           <CardContent className="flex justify-center">
             <Button asChild size="lg" className="transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95">
-              <Link href="/guidance">
+              <Link href="/students">
                 <Sparkles className="mr-2 h-5 w-5" />
                 Explore Student Support
               </Link>
