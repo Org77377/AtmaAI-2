@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateStudentNotes, type NotesGeneratorFormState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, NotebookText, Sparkles, Copy, HelpCircle, Info } from 'lucide-react';
+import { Loader2, AlertTriangle, NotebookText, Sparkles, Copy, HelpCircle, Info, FileText } from 'lucide-react';
 
 const initialState: NotesGeneratorFormState = {
   message: '',
@@ -99,8 +99,7 @@ function NotesFormFieldsAndStatus({
       {!pending && state.notes && !state.isError && (
         <Card className="mt-8 shadow-lg">
             <CardHeader className="p-6">
-              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end sm:items-center mb-4">
-                {/* "Explain More" button previously here has been removed */}
+               <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end sm:items-center mb-4">
                 <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending || !state.notes} className="w-full sm:w-auto">
                   <Copy className="mr-2 h-4 w-4" />
                   Copy Notes
@@ -124,6 +123,14 @@ function NotesFormFieldsAndStatus({
                     AatmAI provides helpful summaries and explanations as a study aid. Always consult your primary study materials, textbooks, and instructors for comprehensive understanding and official exam preparation. These notes are a starting point, not a substitute for thorough learning.
                   </AlertDescription>
                 </Alert>
+                <Alert variant="default" className="mt-4 py-3 px-4 bg-sky-50 dark:bg-sky-900/30 border-sky-300 dark:border-sky-700">
+                  <FileText className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+                  <AlertTitle className="font-semibold text-sky-700 dark:text-sky-500">Pro Tip!</AlertTitle>
+                  <AlertDescription className="text-sky-600 dark:text-sky-400">
+                    Copy these notes and save them as a <strong><code>.md</code></strong> (Markdown) file on your computer.
+                    For the best viewing experience with formatting preserved (like headings and lists), open the <code>.md</code> file in a code editor like VS Code or any Markdown viewer.
+                  </AlertDescription>
+                </Alert>
             </CardContent>
         </Card>
       )}
@@ -144,18 +151,22 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  
+  // Use state for topic and detailLevel to control form inputs
   const [currentTopic, setCurrentTopic] = useState<string>(initialState.inputSubmitted || '');
   const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(initialState.detailLevel || 'concise');
 
   useEffect(() => {
-    // Initialize local state from server action state only once or when relevant fields change
+    // Sync local state from server action state on completion
     if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
       setCurrentTopic(state.topicSubmitted);
     }
     if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
       setCurrentDetailLevel(state.detailLevel);
     }
-  }, [state.topicSubmitted, state.detailLevel]); // Removed currentTopic, currentDetailLevel from dependencies to avoid loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.topicSubmitted, state.detailLevel]);
+
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -171,15 +182,18 @@ export default function StudentNotesGeneratorPage() {
       });
     }
   }, [state.message, state.isError, state.notes, state.detailLevel, toast]);
-
+  
   const handleExplainMore = () => {
     if (currentTopic) {
-      setCurrentDetailLevel('detailed'); // Set the detail level for the next submission
-      // Ensure state is updated before submitting.
-      // Using setTimeout to allow React to process state update before submitting.
+      setCurrentDetailLevel('detailed');
+      // Ensure state update is reflected in the hidden input before submitting
       setTimeout(() => {
         if (formRef.current) {
-          formRef.current.requestSubmit(); // Submit the form, action will pick up currentDetailLevel
+          // Manually trigger the form submission associated with the formAction
+          const formData = new FormData(formRef.current);
+          formData.set('topic', currentTopic); // ensure current topic is sent
+          formData.set('detailLevel', 'detailed'); // explicitly set detail level for this action
+          formAction(formData);
         }
       }, 0);
     } else {
@@ -206,7 +220,7 @@ export default function StudentNotesGeneratorPage() {
         <CardContent>
           <form
             ref={formRef}
-            action={formAction} // Use formAction directly here
+            action={formAction}
             className="space-y-6"
           >
             <NotesFormFieldsAndStatus
@@ -216,14 +230,13 @@ export default function StudentNotesGeneratorPage() {
               currentDetailLevel={currentDetailLevel}
             />
             
-            {/* "Explain More" button directly within the form, conditionally displayed */}
             {!useFormStatus().pending && state.notes && state.detailLevel === 'concise' && (
                  <Button
-                    type="button" // Important: type="button" to not submit the form directly
+                    type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleExplainMore} // This calls the correct function
-                    className="w-full sm:w-auto mt-4" // Added mt-4 for spacing
+                    onClick={handleExplainMore}
+                    className="w-full sm:w-auto mt-4"
                 >
                     <HelpCircle className="mr-2 h-4 w-4" />
                     Explain More
