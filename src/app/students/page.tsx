@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,43 +10,50 @@ const studentFeatures = [
     title: "Student AI for Notes", 
     description: "Summarize, organize, and get insights from your study notes.", 
     icon: <NotebookText className="w-10 h-10 text-blue-500" />,
-    color: "blue"
+    color: "blue",
+    href: "/students/notes-generator"
   },
   { 
     title: "Project Idea Generation", 
     description: "Brainstorm innovative project ideas for your assignments and capstones.", 
     icon: <Lightbulb className="w-10 h-10 text-yellow-500" />,
-    color: "yellow"
+    color: "yellow",
+    href: "#" // Placeholder for future link
   },
   { 
     title: "Project Report Help", 
     description: "Get assistance in structuring and writing your project reports.", 
     icon: <FileText className="w-10 h-10 text-green-500" />,
-    color: "green"
+    color: "green",
+    href: "#" // Placeholder for future link
   },
   { 
     title: "Interview Prep", 
     description: "Practice common interview questions and get tips for success.", 
     icon: <Users className="w-10 h-10 text-purple-500" />,
-    color: "purple"
+    color: "purple",
+    href: "#" // Placeholder for future link
   },
   { 
     title: "Resume Building Tips", 
     description: "Learn how to craft a compelling resume that stands out.", 
     icon: <ScrollText className="w-10 h-10 text-red-500" />,
-    color: "red"
+    color: "red",
+    href: "#" // Placeholder for future link
   },
   { 
     title: "Job Search for Freshers", 
     description: "Find resources and strategies for your first job hunt.", 
     icon: <Briefcase className="w-10 h-10 text-indigo-500" />,
-    color: "indigo"
+    color: "indigo",
+    href: "#" // Placeholder for future link
   },
   { 
     title: "Exam Notifications & Prep", 
     description: "Stay updated on exam schedules and get preparation guidance (Feature Coming Soon).", 
     icon: <Bell className="w-10 h-10 text-pink-500" />,
-    color: "pink"
+    color: "pink",
+    href: "#" // Placeholder for future link
   },
 ];
 
@@ -84,11 +90,13 @@ export default function StudentSuccessHubPage() {
                 </CardContent>
                 <div className="p-4 pt-0">
                   <Button 
+                    asChild
                     variant="ghost" 
                     className={`w-full justify-start text-${feature.color}-500 hover:text-${feature.color}-600 hover:bg-${feature.color}-500/10`}
-                    // onClick={() => alert(`Feature: ${feature.title} (coming soon)`)} // Placeholder for future navigation
                   >
-                    Explore <ArrowRight className="ml-2 h-4 w-4" />
+                    <Link href={feature.href || "#"}>
+                      Explore <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               </Card>
