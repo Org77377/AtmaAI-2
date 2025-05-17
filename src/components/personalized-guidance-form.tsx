@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateGuidance, type GuidanceFormState, type ChatMessage } from '@/app/guidance/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Info, Sparkles, Send, User } from 'lucide-react';
+import { Loader2, AlertTriangle, Info, Sparkles, Send, User, Volume2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -158,7 +158,8 @@ export default function PersonalizedGuidanceForm() {
         setConversationHistory(state.updatedConversationHistory);
         localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
       }
-      setCurrentIssue('');
+      setCurrentIssue(''); // Clear the input field after successful submission
+      formRef.current?.reset(); // Reset other form fields if needed (profile, mood, if still visible)
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
@@ -176,6 +177,21 @@ export default function PersonalizedGuidanceForm() {
       }
     }
   }, [conversationHistory]);
+
+  const handleSpeak = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Cancel any ongoing speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      // You could configure utterance.voice, utterance.pitch, utterance.rate here if needed
+      window.speechSynthesis.speak(utterance);
+    } else {
+      toast({
+        title: "Speech Not Supported",
+        description: "Your browser does not support text-to-speech.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -201,19 +217,32 @@ export default function PersonalizedGuidanceForm() {
                   <div
                     key={index}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg shadow-sm text-sm w-full break-words", 
+                      "flex flex-col items-start gap-2 p-3 rounded-lg shadow-sm text-sm w-full break-words", 
                       msg.role === 'user' ? "bg-primary/10" : "bg-muted/60"
                     )}
                   >
-                    {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
-                    <p className={cn(
-                        "whitespace-pre-wrap flex-1", 
-                        msg.role === 'user' ? "text-foreground" : "text-foreground"
-                      )}
-                    >
-                      {msg.content}
-                    </p>
-                    {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />}
+                    <div className="flex items-center gap-2 w-full">
+                        {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
+                        <p className={cn(
+                            "whitespace-pre-wrap flex-1", 
+                            msg.role === 'user' ? "text-foreground" : "text-foreground"
+                          )}
+                        >
+                          {msg.content}
+                        </p>
+                        {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0" />}
+                    </div>
+                    {msg.role === 'model' && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleSpeak(msg.content)}
+                            className="h-6 w-6 p-1 self-start mt-1"
+                            aria-label="Speak AatmAI's message"
+                        >
+                            <Volume2 className="h-4 w-4 text-primary/80 hover:text-primary" />
+                        </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -226,7 +255,8 @@ export default function PersonalizedGuidanceForm() {
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
         {conversationHistory.length > 0 && (
           <>
-            <input type="hidden" name="profile" value={localStorage.getItem('userNameAatmAI') || "User"} />
+            {/* Profile and Mood are now part of the conversation history and not separate inputs after first message */}
+            <input type="hidden" name="profile" value={localStorage.getItem('aatmAI-userName') || "User"} />
             <input type="hidden" name="mood" value="Continuing conversation" />
           </>
         )}
