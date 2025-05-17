@@ -19,14 +19,14 @@ const studentFeatures = [
     description: "Brainstorm innovative project ideas for your assignments and capstones.", 
     icon: <Lightbulb className="w-10 h-10 text-yellow-500" />,
     color: "yellow",
-    href: "/students/project-ideas" // Updated href
+    href: "/students/project-ideas"
   },
   { 
     title: "Project Report Help", 
     description: "Get assistance in structuring and writing your project reports.", 
     icon: <FileText className="w-10 h-10 text-green-500" />,
     color: "green",
-    href: "#" // Placeholder for future link
+    href: "/students/project-report" // Updated href
   },
   { 
     title: "Interview Prep", 
@@ -108,4 +108,3 @@ export default function StudentSuccessHubPage() {
     </div>
   );
 }
-
