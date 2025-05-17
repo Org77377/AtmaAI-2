@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,15 +28,15 @@ function SubmitButton() {
   );
 }
 
-function StoryFormFieldsAndStatus({ 
-    fields, 
-    isError, 
-    message, 
-    stories 
-}: { 
-    fields?: Record<string, string>; 
-    isError?: boolean; 
-    message?: string; 
+function StoryFormFieldsAndStatus({
+    fields,
+    isError,
+    message,
+    stories
+}: {
+    fields?: Record<string, string>;
+    isError?: boolean;
+    message?: string;
     stories?: StoriesFormState['stories'];
 }) {
   const { pending } = useFormStatus();
@@ -69,7 +70,7 @@ function StoryFormFieldsAndStatus({
         />
         {fields?.currentChallenges && <p className="text-sm text-destructive mt-1">{fields.currentChallenges}</p>}
       </div>
-      
+
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
@@ -122,13 +123,12 @@ function StoryFormFieldsAndStatus({
 }
 
 export default function CuratedStoriesForm() {
-  const [state, formAction] = useFormState(handleCurateStories, initialState);
+  const [state, formAction] = useActionState(handleCurateStories, initialState); // Changed from useFormState
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    // This effect runs when 'state' changes, which happens after formAction completes
-    if (state.message) { 
+    if (state.message) {
       if (state.isError) {
         toast({
           title: "Error",
@@ -143,7 +143,7 @@ export default function CuratedStoriesForm() {
         if (!state.stories.stories || state.stories.stories.length === 0) {
           // If successful but no stories, don't reset form, so user can adjust
         } else {
-          formRef.current?.reset(); // Reset form if stories are found
+          formRef.current?.reset();
         }
       }
     }
@@ -151,7 +151,7 @@ export default function CuratedStoriesForm() {
 
   return (
     <form ref={formRef} action={formAction} className="space-y-6">
-      <StoryFormFieldsAndStatus 
+      <StoryFormFieldsAndStatus
         fields={state.fields}
         isError={state.isError}
         message={state.message}

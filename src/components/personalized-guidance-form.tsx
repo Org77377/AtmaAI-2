@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,14 +32,14 @@ function SubmitButton() {
   );
 }
 
-function FormFieldsAndStatus({ 
-  fields, 
-  isError, 
-  message, 
-  conversationHistoryLength 
-}: { 
-  fields?: Record<string, string>; 
-  isError?: boolean; 
+function FormFieldsAndStatus({
+  fields,
+  isError,
+  message,
+  conversationHistoryLength
+}: {
+  fields?: Record<string, string>;
+  isError?: boolean;
   message?: string;
   conversationHistoryLength: number;
 }) {
@@ -84,8 +85,6 @@ function FormFieldsAndStatus({
           id="issue"
           name="issue"
           rows={conversationHistoryLength === 0 ? 5 : 3}
-          // value={currentIssue} // Managed by form reset or direct input
-          // onChange={(e) => setCurrentIssue(e.target.value)}
           placeholder="Feel free to share any specific topic, challenge, or feeling you'd like to talk about. AatmAI is here to listen without judgment."
           className="mt-2"
           required
@@ -119,13 +118,12 @@ function FormFieldsAndStatus({
 
 
 export default function PersonalizedGuidanceForm() {
-  const [state, formAction] = useFormState(handleGenerateGuidance, initialState);
+  const [state, formAction] = useActionState(handleGenerateGuidance, initialState); // Changed from useFormState
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  
+
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
-  // const [currentIssue, setCurrentIssue] = useState(''); // No longer needed here, form reset will handle
 
   useEffect(() => {
     const storedHistory = localStorage.getItem('aatmAI-chat-history');
@@ -135,18 +133,17 @@ export default function PersonalizedGuidanceForm() {
         if (Array.isArray(parsedHistory)) {
             setConversationHistory(parsedHistory);
         } else {
-            localStorage.removeItem('aatmAI-chat-history'); 
+            localStorage.removeItem('aatmAI-chat-history');
         }
       } catch (e) {
         console.error("Failed to parse chat history from localStorage", e);
-        localStorage.removeItem('aatmAI-chat-history'); 
+        localStorage.removeItem('aatmAI-chat-history');
       }
     }
   }, []);
 
   useEffect(() => {
-    // This effect runs when 'state' changes, which happens after formAction completes
-    if (state.message) { 
+    if (state.message) {
       if (state.isError) {
         toast({
           title: "Error",
@@ -161,11 +158,11 @@ export default function PersonalizedGuidanceForm() {
           setConversationHistory(state.updatedConversationHistory);
           localStorage.setItem('aatmAI-chat-history', JSON.stringify(state.updatedConversationHistory));
         }
-        formRef.current?.reset(); // Reset the form, clearing the 'issue' textarea
+        formRef.current?.reset();
       }
     }
-  }, [state, toast]); 
-  
+  }, [state, toast]);
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
@@ -203,7 +200,7 @@ export default function PersonalizedGuidanceForm() {
                   >
                     {msg.role === 'model' && <Bot className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
                     <p className={cn(
-                        "text-sm whitespace-pre-wrap max-w-xs sm:max-w-md md:max-w-lg", 
+                        "text-sm whitespace-pre-wrap max-w-xs sm:max-w-md md:max-w-lg",
                         msg.role === 'user' ? "text-right text-foreground" : "text-foreground"
                       )}
                     >
@@ -212,7 +209,6 @@ export default function PersonalizedGuidanceForm() {
                     {msg.role === 'user' && <User className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
                   </div>
                 ))}
-                {/* Optimistic UI for pending state could be added here if desired */}
               </div>
             </ScrollArea>
           </CardContent>
@@ -221,14 +217,14 @@ export default function PersonalizedGuidanceForm() {
 
       <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
-        
-        <FormFieldsAndStatus 
+
+        <FormFieldsAndStatus
           fields={state.fields}
           isError={state.isError}
           message={state.message}
           conversationHistoryLength={conversationHistory.length}
         />
-        
+
         <SubmitButton />
       </form>
     </div>
