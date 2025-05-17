@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { handleGenerateProjectIdeas, handleGenerateProjectGuidance, type ProjectIdeasFormState, type ProjectGuidanceRequestState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Lightbulb, Sparkles, Info, FileText, HelpCircle, Wand2 } from 'lucide-react';
+import { Loader2, AlertTriangle, Lightbulb, Sparkles, Info, FileText, Wand2 } from 'lucide-react';
 import type { GenerateProjectIdeasInput, GenerateProjectIdeasOutput } from '@/ai/flows/generate-project-ideas-flow';
 import type { GenerateProjectGuidanceOutput } from '@/ai/flows/generate-project-guidance-flow';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -31,17 +31,8 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Generating...
-        </>
-      ) : (
-        <>
-          <Sparkles className="mr-2 h-4 w-4" />
-          Generate Project Ideas
-        </>
-      )}
+      <Sparkles className="mr-2 h-4 w-4" />
+      Generate Project Ideas
     </Button>
   );
 }
@@ -62,7 +53,7 @@ function ProjectIdeasFormFieldsAndStatus({
       {pending && (
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is brainstorming ideas...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is brainstorming project ideas...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             This may take a few moments. Please wait.
           </AlertDescription>
