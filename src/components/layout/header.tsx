@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react';
-import type { NavItemType } from '@/components/layout/main-nav';
+import type { NavItemType } from '@/components/layout/main-nav'; // Corrected import path
 import { MainNav } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export default function Header() {
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('userNameAatmAI'); // Corrected key
+      localStorage.removeItem('userNameAatmAI');
       localStorage.removeItem('aatmAI-chat-history');
       toast({
         title: "See Ya!",
@@ -43,7 +43,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         <Link href={`/`} className="mr-4 md:mr-8 flex items-baseline space-x-2">
           <Sparkles className="h-6 w-6 text-primary" />
@@ -79,7 +79,7 @@ export default function Header() {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
-                {navItems.map((item) => ( // Using navItems directly as it includes Saved Quotes with icon
+                {navItems.map((item) => (
                   <SheetClose asChild key={item.href}>
                      <Link
                        href={item.href}
