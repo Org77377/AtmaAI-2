@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI agent that simulates an interview for a given domain.
@@ -10,12 +11,13 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// Define Zod schemas locally - DO NOT EXPORT THEM
 const InterviewMessageSchema = z.object({
   role: z.enum(['interviewer', 'user']),
   content: z.string(),
 });
 
-export const InterviewPrepInputSchema = z.object({
+const InterviewPrepInputSchema = z.object({
   domain: z.string().min(1, 'Domain must be specified.'),
   interviewHistory: z.array(InterviewMessageSchema).optional().default([]),
   currentAnswer: z.string().optional().default(''), // User's answer to the previous question
@@ -23,7 +25,7 @@ export const InterviewPrepInputSchema = z.object({
 });
 export type InterviewPrepInput = z.infer<typeof InterviewPrepInputSchema>;
 
-export const InterviewPrepOutputSchema = z.object({
+const InterviewPrepOutputSchema = z.object({
   aiResponse: z.string().describe('The AI interviewer_s question or feedback.'),
   isInterviewOver: z.boolean().describe('Indicates if the interview session has concluded.'),
   feedbackSummary: z.string().optional().describe('Overall feedback summary if the interview is over.'),
@@ -43,8 +45,8 @@ const MAX_QUESTIONS = 3; // AI will ask 3 questions before concluding
 
 const prompt = ai.definePrompt({
   name: 'interviewPrepPrompt',
-  input: {schema: InterviewPrepInputSchema},
-  output: {schema: InterviewPrepOutputSchema},
+  input: {schema: InterviewPrepInputSchema}, // Uses local schema
+  output: {schema: InterviewPrepOutputSchema}, // Uses local schema
   prompt: `You are AatmAI, a professional and insightful AI Interviewer.
 Your goal is to conduct a mock interview with the user for the specified domain.
 
@@ -95,8 +97,8 @@ Do not ask for personal information. Focus on skills, experience (hypothetical i
 const interviewPrepFlow = ai.defineFlow(
   {
     name: 'interviewPrepFlow',
-    inputSchema: InterviewPrepInputSchema,
-    outputSchema: InterviewPrepOutputSchema,
+    inputSchema: InterviewPrepInputSchema, // Uses local schema
+    outputSchema: InterviewPrepOutputSchema, // Uses local schema
   },
   async (input: InterviewPrepInput) => {
     // Simple logic to manage questionsAsked for the prompt, the AI will be guided by this.
