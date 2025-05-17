@@ -13,19 +13,13 @@ import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-// Removed useIsMobile import as it's not directly used here
 
 const navItems: NavItemType[] = [
   { href: `/`, label: "Home" },
   { href: `/guidance`, label: "Chat" },
   { href: `/stories`, label: "Stories" },
-  { href: `/quotes/saved`, label: "Saved Quotes" }, // Added to base nav items
+  { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
   { href: `/about`, label: "About Us" },
-];
-
-const mobileOnlyNavItems: NavItemType[] = [
-    // Saved Quotes is now part of the main navItems, so this can be empty or adjusted
-    // { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
 ];
 
 
@@ -35,29 +29,29 @@ export default function Header() {
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Combine nav items for mobile menu
-  const allNavItemsForMobile = [...navItems]; // mobileOnlyNavItems can be merged if it has distinct items
+  const allNavItemsForMobile = [...navItems];
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('userNameAatmAI'); // Corrected key
-      localStorage.removeItem('aatmAI-chat-history');
+      localStorage.removeItem('userNameAatmAI');
+      localStorage.removeItem('aatmAI-chat-history'); // Ensure chat history is also cleared
       toast({
         title: "See Ya!",
         description: "You've been logged out. Enter a new name to start fresh.",
       });
-      setIsMobileMenuOpen(false); // Close mobile menu on logout
+      setIsMobileMenuOpen(false);
       window.location.href = '/'; // Force reload to home
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95"> {/* Reverted: removed backdrop-blur-sm, changed bg opacity */}
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container flex h-16 items-center px-4">
-        <div className="flex items-center md:hidden"> {/* Container for mobile menu trigger and theme toggle */}
+        <div className="flex items-center md:hidden">
+          <ThemeToggle />
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-2">
+              <Button variant="ghost" size="icon" className="ml-2"> {/* Adjusted margin */}
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -102,7 +96,6 @@ export default function Header() {
               </div>
             </SheetContent>
           </Sheet>
-          <ThemeToggle /> {/* Moved ThemeToggle here for mobile */}
         </div>
 
         <Link href={`/`} className="mr-4 md:mr-8 flex items-baseline space-x-2">
@@ -114,7 +107,7 @@ export default function Header() {
         </Link>
 
         <div className="hidden md:flex md:flex-grow">
-         <MainNav navItems={navItems} currentLocale="en" />
+         <MainNav navItems={navItems} />
         </div>
 
         <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto">
