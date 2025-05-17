@@ -151,8 +151,19 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>(state.topicSubmitted || ''); 
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(state.detailLevel || 'concise');
+  const [currentTopic, setCurrentTopic] = useState<string>(''); 
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
+
+  useEffect(() => {
+    // Initialize from state on first load or after action completes
+    if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
+        setCurrentTopic(state.topicSubmitted);
+    }
+    if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
+        setCurrentDetailLevel(state.detailLevel);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.topicSubmitted, state.detailLevel]); // Only depend on these specific state fields
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -167,21 +178,13 @@ export default function StudentNotesGeneratorPage() {
         variant: "destructive",
       });
     }
-    
-    if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
-      setCurrentTopic(state.topicSubmitted);
-    }
-    if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
-      setCurrentDetailLevel(state.detailLevel);
-    }
-
-  // Removed currentTopic and currentDetailLevel from dependencies to prevent potential loops
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, toast]); 
+  }, [state.message, state.isError, state.notes, state.detailLevel, toast]); 
   
   const handleExplainMore = () => {
     if (currentTopic) {
       setCurrentDetailLevel('detailed'); 
+      // Use a timeout to ensure the state update for currentDetailLevel (and thus the hidden input)
+      // has a chance to propagate before the form submission is triggered.
       setTimeout(() => {
         formRef.current?.requestSubmit();
       }, 0);
