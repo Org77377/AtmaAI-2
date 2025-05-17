@@ -33,14 +33,12 @@ function NotesFormFieldsAndStatus({
   state,
   currentTopic,
   setCurrentTopic,
-  handleExplainMore,
-  currentDetailLevel,
+  currentDetailLevel, // Added this prop
 }: {
   state: NotesGeneratorFormState;
   currentTopic: string;
   setCurrentTopic: (topic: string) => void;
-  handleExplainMore: () => void;
-  currentDetailLevel: 'concise' | 'detailed';
+  currentDetailLevel: 'concise' | 'detailed'; // Added this prop type
 }) {
   const { pending } = useFormStatus();
   const { toast } = useToast();
@@ -58,13 +56,16 @@ function NotesFormFieldsAndStatus({
     }
   };
 
+  // The handleExplainMore function is now in the parent StudentNotesGeneratorPage component
+  // as it needs to modify the state (currentDetailLevel) that triggers the form submission.
+
   return (
     <>
       <div>
         <Label htmlFor="topic" className="text-lg font-semibold">Topic for Notes</Label>
         <Textarea
           id="topic"
-          name="topic"
+          name="topic" // Important for FormData
           rows={3}
           placeholder="e.g., Photosynthesis, The French Revolution, Basics of Quantum Computing"
           className="mt-2"
@@ -76,12 +77,14 @@ function NotesFormFieldsAndStatus({
         {state.fields?.topic && <p className="text-sm text-destructive mt-1">{state.fields.topic}</p>}
       </div>
 
+      {/* Hidden input to pass detailLevel to the server action */}
       <input type="hidden" name="detailLevel" value={currentDetailLevel} />
+
 
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({currentDetailLevel})...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({state.detailLevel || currentDetailLevel})...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             Please wait a moment. This can take a few seconds.
           </AlertDescription>
@@ -102,8 +105,9 @@ function NotesFormFieldsAndStatus({
         <Card className="mt-8 shadow-lg">
             <CardHeader className="p-6">
               <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end sm:items-center mb-4">
+                {/* handleExplainMore is now called from the parent component */}
                 {state.detailLevel === 'concise' && (
-                  <Button variant="outline" size="sm" onClick={handleExplainMore} disabled={pending} className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" onClick={() => { /* This onClick will be handled by the parent */ }} disabled={pending} className="w-full sm:w-auto" data-explain-more-button>
                     <HelpCircle className="mr-2 h-4 w-4" />
                     Explain More
                   </Button>
@@ -120,11 +124,11 @@ function NotesFormFieldsAndStatus({
                 <CardDescription>Review and use these notes for your study.</CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="px-0 sm:px-0 md:px-0 pt-0"> {/* Removed horizontal padding */}
+            <CardContent className="px-0 sm:px-0 md:px-0 pt-0">
                 <pre className="w-full whitespace-pre-wrap font-sans text-base bg-muted p-4 md:p-6 rounded-lg border border-border shadow-inner overflow-x-auto">
                     {state.notes}
                 </pre>
-                <Alert variant="default" className="mt-4 mx-4 md:mx-6 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"> {/* Added margin for alert */}
+                <Alert variant="default" className="mt-4 mx-4 md:mx-6 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
                   <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   <AlertTitle className="font-semibold text-amber-700 dark:text-amber-500">Important Disclaimer</AlertTitle>
                   <AlertDescription className="text-amber-600 dark:text-amber-400">
@@ -151,17 +155,18 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentTopic, setCurrentTopic] = useState<string>('');
-  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
+  const [currentTopic, setCurrentTopic] = useState<string>(initialState.topicSubmitted || '');
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(initialState.detailLevel || 'concise');
 
   useEffect(() => {
-    if (state.topicSubmitted !== undefined) {
-        setCurrentTopic(state.topicSubmitted);
+    // Initialize topic and detailLevel from state if it exists (e.g., after a form submission)
+    if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
+      setCurrentTopic(state.topicSubmitted);
     }
-    if (state.detailLevel) {
-        setCurrentDetailLevel(state.detailLevel);
+    if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
+      setCurrentDetailLevel(state.detailLevel);
     }
-  }, [state.topicSubmitted, state.detailLevel]);
+  }, [state.topicSubmitted, state.detailLevel, currentTopic, currentDetailLevel]); // Added dependencies
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
@@ -181,14 +186,11 @@ export default function StudentNotesGeneratorPage() {
   const handleExplainMore = () => {
     if (currentTopic) {
       setCurrentDetailLevel('detailed');
-      // Use setTimeout to ensure state update is processed before form submission
+      // Use setTimeout to ensure state update for currentDetailLevel (and thus hidden input)
+      // is processed before form submission
       setTimeout(() => {
         if (formRef.current) {
-          // Create a new FormData object for the submission
-          const formData = new FormData(formRef.current);
-          formData.set('topic', currentTopic); // Ensure topic is correctly set
-          formData.set('detailLevel', 'detailed'); // Explicitly set detail level
-          formAction(formData); // Call formAction with the new FormData
+          formRef.current.requestSubmit(); // Programmatically submit the form
         }
       }, 0);
     } else {
@@ -200,17 +202,11 @@ export default function StudentNotesGeneratorPage() {
     }
   };
 
-  const handleSubmitForm = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    // currentDetailLevel is already set via state and hidden input
-    // currentTopic is also set via state and Textarea
-    formAction(formData);
-  };
-
+  // The submit button is now part of NotesFormFieldsAndStatus
+  // and the form submission is handled by the action prop
 
   return (
-    <div className="max-w-3xl mx-auto py-8"> {/* This still constrains the overall page */}
+    <div className="max-w-3xl mx-auto py-8">
       <Card className="shadow-xl">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
@@ -224,16 +220,29 @@ export default function StudentNotesGeneratorPage() {
         <CardContent>
           <form
             ref={formRef}
-            onSubmit={handleSubmitForm} // Use the explicit submit handler
+            action={formAction} // Use formAction directly
             className="space-y-6"
           >
             <NotesFormFieldsAndStatus
               state={state}
               currentTopic={currentTopic}
               setCurrentTopic={setCurrentTopic}
-              handleExplainMore={handleExplainMore}
-              currentDetailLevel={currentDetailLevel}
+              currentDetailLevel={currentDetailLevel} // Pass currentDetailLevel
             />
+            {/* Pass handleExplainMore to the NotesFormFieldsAndStatus or handle its click here */}
+            {/* For simplicity, we'll keep the button inside NotesFormFieldsAndStatus and trigger parent's handleExplainMore */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleExplainMore} // This button is now outside the form fields status component if that's where Explain More should be
+              disabled={state.detailLevel === 'detailed' || useFormStatus().pending} // Example of how to disable
+              className="w-full sm:w-auto"
+              style={{ display: state.notes && state.detailLevel === 'concise' ? 'inline-flex' : 'none' }} // Conditional display
+            >
+              <HelpCircle className="mr-2 h-4 w-4" />
+              Explain More
+            </Button>
             <SubmitButton detailLevel={currentDetailLevel} />
           </form>
         </CardContent>
@@ -241,4 +250,3 @@ export default function StudentNotesGeneratorPage() {
     </div>
   );
 }
-
