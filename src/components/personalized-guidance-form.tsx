@@ -34,7 +34,7 @@ function SubmitButton() {
 export default function PersonalizedGuidanceForm() {
   const [state, formAction] = React.useActionState(handleGenerateGuidance, initialState); 
   const { toast } = useToast();
-  const { pending } = useFormStatus();
+  const { pending } = useFormStatus(); // This might not correctly reflect pending state if formAction isn't directly on form
   const formRef = useRef<HTMLFormElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +45,12 @@ export default function PersonalizedGuidanceForm() {
     const storedHistory = localStorage.getItem('aatmai-chat-history');
     if (storedHistory) {
       try {
-        setConversationHistory(JSON.parse(storedHistory));
+        const parsedHistory = JSON.parse(storedHistory);
+        if (Array.isArray(parsedHistory)) {
+            setConversationHistory(parsedHistory);
+        } else {
+            localStorage.removeItem('aatmai-chat-history'); // Clear corrupted data
+        }
       } catch (e) {
         console.error("Failed to parse chat history from localStorage", e);
         localStorage.removeItem('aatmai-chat-history'); // Clear corrupted data
@@ -54,7 +59,7 @@ export default function PersonalizedGuidanceForm() {
   }, []);
 
   useEffect(() => {
-    if (state.message && !pending) {
+    if (state.message && !pending) { // Check pending state here, from useFormStatus on a parent or the submit button
       if (state.isError) {
         toast({
           title: "Error",
@@ -64,19 +69,18 @@ export default function PersonalizedGuidanceForm() {
       } else if (state.guidance) {
          toast({
           title: "AatmAI Responded!",
-          // description: state.message, // Message might be too generic
         });
         if(state.updatedConversationHistory){
           setConversationHistory(state.updatedConversationHistory);
           localStorage.setItem('aatmai-chat-history', JSON.stringify(state.updatedConversationHistory));
         }
-        setCurrentIssue(''); // Clear the input field after successful submission
+        setCurrentIssue(''); 
+        formRef.current?.reset(); // Reset the issue textarea specifically if needed
       }
     }
   }, [state, pending, toast]);
   
   useEffect(() => {
-    // Scroll to bottom when conversation history changes
     if (scrollAreaRef.current) {
       const scrollViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
       if (scrollViewport) {
@@ -85,20 +89,15 @@ export default function PersonalizedGuidanceForm() {
     }
   }, [conversationHistory]);
 
-   const handleSubmitDecorator = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    formData.set('conversationHistory', JSON.stringify(conversationHistory)); // Add current history
-    formAction(formData);
-  };
-
-
   return (
     <div className="space-y-6">
-      <div className="p-4 border rounded-md bg-accent/10 text-accent-foreground/80 text-sm">
-        <Info className="inline-block h-4 w-4 mr-2 align-middle" />
-        AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences and our conversation. Your privacy is respected; no personal data is stored on servers.
-      </div>
+      <Alert variant="default" className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
+        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <AlertTitle className="font-semibold text-blue-700 dark:text-blue-300">Chat with AatmAI</AlertTitle>
+        <AlertDescription className="text-blue-600 dark:text-blue-400">
+          AatmAI is here to listen. I may be an AI, but I'll try my best to offer thoughtful and supportive responses based on common human experiences and our conversation. Your privacy is respected; no personal data or conversation history is stored on our servers.
+        </AlertDescription>
+      </Alert>
 
       {conversationHistory.length > 0 && (
         <Card className="bg-background/50">
@@ -112,13 +111,13 @@ export default function PersonalizedGuidanceForm() {
                   <div
                     key={index}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg",
+                      "flex items-start gap-3 p-3 rounded-lg shadow-sm",
                       msg.role === 'user' ? "bg-primary/10 justify-end" : "bg-muted/50"
                     )}
                   >
                     {msg.role === 'model' && <Bot className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
                     <p className={cn(
-                        "text-sm whitespace-pre-wrap",
+                        "text-sm whitespace-pre-wrap max-w-xs sm:max-w-md md:max-w-lg", // Added max-width
                         msg.role === 'user' ? "text-right text-foreground" : "text-foreground"
                       )}
                     >
@@ -127,17 +126,21 @@ export default function PersonalizedGuidanceForm() {
                     {msg.role === 'user' && <User className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />}
                   </div>
                 ))}
+                {pending && ( // Display AI thinking directly in chat for user requests
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 animate-pulse">
+                    <Bot className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-muted-foreground italic">AatmAI is typing...</p>
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </CardContent>
         </Card>
       )}
 
-      <form ref={formRef} action={formAction} onSubmit={handleSubmitDecorator} className="space-y-6">
-        {/* Hidden input to carry conversation history string for the action */}
+      <form ref={formRef} action={formAction} className="space-y-6">
         <input type="hidden" name="conversationHistory" value={JSON.stringify(conversationHistory)} />
 
-        {/* Conditionally render profile and mood if it's the start of a new session */}
         {conversationHistory.length === 0 && (
           <>
             <div>
@@ -186,8 +189,9 @@ export default function PersonalizedGuidanceForm() {
           />
           {state.fields?.issue && <p className="text-sm text-destructive mt-1">{state.fields.issue}</p>}
         </div>
-
-        {pending && (
+        
+        {/* Display pending state for the overall form submission, not just in chat */}
+        {pending && conversationHistory.length === 0 && ( // Only show this general loading if it's the first message
           <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
             <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
             <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is thinking...</AlertTitle>
@@ -202,7 +206,7 @@ export default function PersonalizedGuidanceForm() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>An Error Occurred</AlertTitle>
               <AlertDescription>
-                {state.message} Please try again.
+                {state.message} Please try again. If the issue persists, AatmAI might be unavailable.
               </AlertDescription>
             </Alert>
         )}
@@ -212,4 +216,3 @@ export default function PersonalizedGuidanceForm() {
     </div>
   );
 }
-
