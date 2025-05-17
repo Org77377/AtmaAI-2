@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ const studentFeatures = [
     description: "Brainstorm innovative project ideas for your assignments and capstones.", 
     icon: <Lightbulb className="w-10 h-10 text-yellow-500" />,
     color: "yellow",
-    href: "#" // Placeholder for future link
+    href: "/students/project-ideas" // Updated href
   },
   { 
     title: "Project Report Help", 
@@ -107,3 +108,4 @@ export default function StudentSuccessHubPage() {
     </div>
   );
 }
+
