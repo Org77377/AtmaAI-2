@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ArrowRight, BookOpen, MessageSquareHeart, Loader2, Wind, Sparkles, Quote, ShieldCheck, Lightbulb, Users, Info } from 'lucide-react';
+import { ArrowRight, BookOpen, MessageSquareHeart, Loader2, Wind, Sparkles, Quote, ShieldCheck, Lightbulb, Users, Info, School } from 'lucide-react';
 import DailyQuoteCard from '@/components/daily-quote-card';
 import MoodTracker from '@/components/mood-tracker';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ export default function HomePage() {
     if (storedName) {
       setUserName(storedName);
     } else {
-      setUserName(null); 
+      setUserName(null);
     }
     setIsLoadingName(false);
 
@@ -54,7 +54,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (userName === null && !isLoadingName) {
-        // Focus the input field when the name input form is shown
         nameInputRef.current?.focus();
         const intervalId = setInterval(() => {
             setCurrentCatchphraseIndex((prevIndex) =>
@@ -71,18 +70,17 @@ export default function HomePage() {
     const trimmedName = nameInput.trim();
     if (trimmedName) {
       localStorage.setItem('userNameAatmAI', trimmedName);
-      // Clear chat history from previous user if any
-      localStorage.removeItem('aatmai-chat-history'); 
+      localStorage.removeItem('aatmai-chat-history');
       setUserName(trimmedName);
       setNameInput("");
       setIsAppLoading(true);
       setTimeout(() => {
         setIsAppLoading(false);
-        router.refresh(); 
+        router.refresh();
       }, 3000);
     }
   };
-  
+
   if (isLoadingName) {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-200px)]">
@@ -99,8 +97,8 @@ export default function HomePage() {
             <CardTitle className="text-3xl">Welcome to AatmAI!</CardTitle>
             <CardDescription>your AI therapist</CardDescription>
              <div className="mt-4 text-center h-10 flex items-center justify-center">
-              <p 
-                key={currentCatchphraseIndex} 
+              <p
+                key={currentCatchphraseIndex}
                 className="text-primary animate-fadeIn text-xl font-medium"
               >
                 {animatedCatchphrases[currentCatchphraseIndex]}
@@ -187,6 +185,28 @@ export default function HomePage() {
       </section>
 
       <section>
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-secondary/50 border-primary/20">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <School className="w-10 h-10 text-primary" />
+              <CardTitle className="text-2xl md:text-3xl text-primary">AatmAI for Students: Your Academic Ally</CardTitle>
+            </div>
+            <CardDescription className="text-lg text-foreground">
+              Navigating student life? AatmAI offers support for study stress, career choices, and personal well-being.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild size="lg" className="transition-transform duration-150 ease-in-out hover:scale-105 active:scale-95">
+              <Link href="/guidance">
+                <Sparkles className="mr-2 h-5 w-5" />
+                Explore Student Support
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section>
         <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2 justify-center">
@@ -261,4 +281,3 @@ export default function HomePage() {
     </div>
   );
 }
-
