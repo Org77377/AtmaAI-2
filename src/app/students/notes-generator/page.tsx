@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
@@ -10,42 +11,41 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateStudentNotes, type NotesGeneratorFormState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, NotebookText, Sparkles, Copy } from 'lucide-react';
+import { Loader2, AlertTriangle, NotebookText, Sparkles, Copy, HelpCircle, Info } from 'lucide-react';
 
 const initialState: NotesGeneratorFormState = {
   message: '',
   isError: false,
+  detailLevel: 'concise',
 };
 
-function SubmitButton() {
+function SubmitButton({ detailLevel }: { detailLevel: 'concise' | 'detailed' }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-      Generate Notes
+      {detailLevel === 'concise' ? 'Generate Concise Notes' : 'Generate Detailed Explanation'}
     </Button>
   );
 }
 
 function NotesFormFieldsAndStatus({
-  fields,
-  isError,
-  message,
-  notes,
-  topicSubmitted,
+  state,
+  currentTopic,
+  setCurrentTopic,
+  handleExplainMore,
 }: {
-  fields?: Record<string, string>;
-  isError?: boolean;
-  message?: string;
-  notes?: string;
-  topicSubmitted?: string;
+  state: NotesGeneratorFormState;
+  currentTopic: string;
+  setCurrentTopic: (topic: string) => void;
+  handleExplainMore: () => void;
 }) {
   const { pending } = useFormStatus();
   const { toast } = useToast();
 
   const handleCopyNotes = () => {
-    if (notes) {
-      navigator.clipboard.writeText(notes)
+    if (state.notes) {
+      navigator.clipboard.writeText(state.notes)
         .then(() => {
           toast({ title: 'Notes Copied!', description: 'The generated notes have been copied to your clipboard.' });
         })
@@ -68,56 +68,75 @@ function NotesFormFieldsAndStatus({
           className="mt-2"
           required
           disabled={pending}
-          defaultValue={topicSubmitted}
+          value={currentTopic}
+          onChange={(e) => setCurrentTopic(e.target.value)}
         />
-        {fields?.topic && <p className="text-sm text-destructive mt-1">{fields.topic}</p>}
+        {state.fields?.topic && <p className="text-sm text-destructive mt-1">{state.fields.topic}</p>}
       </div>
+      <input type="hidden" name="detailLevel" value={state.detailLevel || 'concise'} />
 
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({state.detailLevel})...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             Please wait a moment. This can take a few seconds.
           </AlertDescription>
         </Alert>
       )}
 
-      {!pending && message && isError && !fields && (
+      {!pending && state.message && state.isError && !state.fields && (
          <Alert variant="destructive" className="mt-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error Generating Notes</AlertTitle>
             <AlertDescription>
-              {message} Please try adjusting your topic or try again.
+              {state.message} Please try adjusting your topic or try again.
             </AlertDescription>
           </Alert>
       )}
 
-      {!pending && notes && !isError && (
+      {!pending && state.notes && !state.isError && (
         <Card className="mt-8 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between space-x-2">
                 <div>
-                    <CardTitle className="text-2xl text-primary">Generated Notes for "{topicSubmitted}"</CardTitle>
+                    <CardTitle className="text-2xl text-primary">
+                        {state.detailLevel === 'detailed' ? 'Detailed Explanation' : 'Concise Notes'} for "{state.topicSubmitted}"
+                    </CardTitle>
                     <CardDescription>Review and use these notes for your study.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleCopyNotes}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy Notes
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                    {state.detailLevel === 'concise' && (
+                        <Button variant="outline" size="sm" onClick={handleExplainMore} disabled={pending}>
+                            <HelpCircle className="mr-2 h-4 w-4" />
+                            Explain More
+                        </Button>
+                    )}
+                    <Button variant="outline" size="sm" onClick={handleCopyNotes} disabled={pending}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <pre className="whitespace-pre-wrap font-sans text-sm bg-muted p-4 rounded-md overflow-x-auto">
-                    {notes}
+                    {state.notes}
                 </pre>
+                <Alert variant="default" className="mt-4 bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
+                  <Info className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <AlertTitle className="font-semibold text-amber-700 dark:text-amber-500">Important Disclaimer</AlertTitle>
+                  <AlertDescription className="text-amber-600 dark:text-amber-400">
+                    AatmAI provides helpful summaries and explanations as a study aid. Always consult your primary study materials, textbooks, and instructors for comprehensive understanding and official exam preparation. These notes are a starting point, not a substitute for thorough learning.
+                  </AlertDescription>
+                </Alert>
             </CardContent>
         </Card>
       )}
-      {!pending && message && !notes && !isError && (
+      {!pending && state.message && !state.notes && !state.isError && (
          <Alert className="mt-6">
             <Sparkles className="h-4 w-4" />
             <AlertTitle>Notes Ready</AlertTitle>
             <AlertDescription>
-              {message} It seems AatmAI processed the request but no specific notes were returned. Try a different topic.
+              {state.message} It seems AatmAI processed the request but no specific notes were returned. Try a different topic or adjust your input.
             </AlertDescription>
           </Alert>
       )}
@@ -129,22 +148,57 @@ export default function StudentNotesGeneratorPage() {
   const [state, formAction] = useActionState(handleGenerateStudentNotes, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [currentTopic, setCurrentTopic] = useState<string>('');
+  const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>('concise');
+
+  // To trigger re-submission for "Explain More"
+  const submitExplainMoreRef = useRef<HTMLButtonElement>(null);
+
 
   useEffect(() => {
     if (state.message && !state.isError && state.notes) {
       toast({
-        title: "Notes Generated!",
+        title: `Notes Generated! (${state.detailLevel})`,
         description: state.message,
       });
-      // Do not reset formRef.current?.reset(); here so user can see the topic.
+      setCurrentTopic(state.topicSubmitted || ''); // Keep topic in textarea
+      setCurrentDetailLevel(state.detailLevel || 'concise');
     } else if (state.message && state.isError) {
       toast({
         title: "Error",
         description: state.message,
         variant: "destructive",
       });
+      setCurrentTopic(state.topicSubmitted || ''); // Keep topic
+      setCurrentDetailLevel(state.detailLevel || 'concise');
     }
   }, [state, toast]);
+
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    formData.set('detailLevel', currentDetailLevel); // Ensure correct detail level is submitted
+    formData.set('topic', currentTopic); // Ensure current topic is submitted
+    formAction(formData);
+  };
+  
+  const handleExplainMore = () => {
+    if (currentTopic) {
+      setCurrentDetailLevel('detailed');
+      // Programmatically submit the form for detailed notes
+      const formData = new FormData(formRef.current!);
+      formData.set('topic', currentTopic); // Ensure current topic is used
+      formData.set('detailLevel', 'detailed');
+      formAction(formData);
+    } else {
+      toast({
+        title: "No Topic",
+        description: "Please enter a topic first before asking for more details.",
+        variant: "destructive"
+      });
+    }
+  };
+
 
   return (
     <div className="max-w-3xl mx-auto py-8">
@@ -155,19 +209,20 @@ export default function StudentNotesGeneratorPage() {
             <CardTitle className="text-3xl md:text-4xl">AI Notes Generator</CardTitle>
           </div>
           <CardDescription className="text-lg">
-            Enter a topic, and AatmAI will generate structured study notes for you.
+            Enter a topic, and AatmAI will generate structured study notes for you. Get concise points for quick revision, or ask for a more detailed explanation.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={formAction} className="space-y-6">
+          <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-6">
             <NotesFormFieldsAndStatus
-              fields={state.fields}
-              isError={state.isError}
-              message={state.message}
-              notes={state.notes}
-              topicSubmitted={state.topicSubmitted}
+              state={{...state, detailLevel: currentDetailLevel}} // Pass currentDetailLevel to sync button text
+              currentTopic={currentTopic}
+              setCurrentTopic={setCurrentTopic}
+              handleExplainMore={handleExplainMore}
             />
-            <SubmitButton />
+             {/* Hidden submit button for programmatic submission, not strictly needed if formAction is called directly with FormData */}
+            <button type="submit" ref={submitExplainMoreRef} style={{ display: 'none' }}>Submit for Explain More</button>
+            <SubmitButton detailLevel={currentDetailLevel} />
           </form>
         </CardContent>
       </Card>

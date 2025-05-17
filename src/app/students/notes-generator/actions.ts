@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -10,7 +11,8 @@ import { z } from 'zod';
 export type NotesGeneratorFormState = {
   message?: string;
   fields?: Record<string, string>;
-  notes?: string; // Store notes directly as string
+  notes?: string;
+  detailLevel?: 'concise' | 'detailed';
   isError?: boolean;
   topicSubmitted?: string;
 };
@@ -20,6 +22,7 @@ const notesGeneratorFormSchema = z.object({
     .string()
     .min(3, 'Topic must be at least 3 characters long.')
     .max(200, 'Topic must be less than 200 characters long.'),
+  detailLevel: z.enum(['concise', 'detailed']).optional().default('concise'),
 });
 
 export async function handleGenerateStudentNotes(
@@ -27,7 +30,9 @@ export async function handleGenerateStudentNotes(
   formData: FormData
 ): Promise<NotesGeneratorFormState> {
   const topic = formData.get('topic');
-  const validatedFields = notesGeneratorFormSchema.safeParse({ topic });
+  const detailLevel = formData.get('detailLevel') as 'concise' | 'detailed' | undefined || 'concise';
+  
+  const validatedFields = notesGeneratorFormSchema.safeParse({ topic, detailLevel });
 
   if (!validatedFields.success) {
     const fieldErrors: Record<string, string> = {};
@@ -41,17 +46,20 @@ export async function handleGenerateStudentNotes(
       fields: fieldErrors,
       isError: true,
       topicSubmitted: typeof topic === 'string' ? topic : undefined,
+      detailLevel: detailLevel,
     };
   }
 
   try {
     const input: GenerateStudentNotesInput = {
       topic: validatedFields.data.topic,
+      detailLevel: validatedFields.data.detailLevel,
     };
     const result: GenerateStudentNotesOutput = await generateStudentNotes(input);
     return {
-      message: 'Notes generated successfully!',
+      message: `Notes (${result.detailLevel}) generated successfully!`,
       notes: result.notes,
+      detailLevel: result.detailLevel,
       isError: false,
       topicSubmitted: validatedFields.data.topic,
     };
@@ -71,6 +79,7 @@ export async function handleGenerateStudentNotes(
       message: errorMessage,
       isError: true,
       topicSubmitted: validatedFields.data.topic,
+      detailLevel: detailLevel,
     };
   }
 }
