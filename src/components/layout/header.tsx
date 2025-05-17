@@ -3,7 +3,8 @@
 
 import Link from 'next/link';
 import { Sparkles, LogOut, Menu, Bookmark } from 'lucide-react';
-import { MainNav, type NavItemType } from '@/components/layout/main-nav';
+import type { NavItemType } from '@/components/layout/main-nav';
+import { MainNav } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useRouter, usePathname } from 'next/navigation';
@@ -17,13 +18,10 @@ const navItems: NavItemType[] = [
   { href: `/`, label: "Home" },
   { href: `/guidance`, label: "Chat" },
   { href: `/stories`, label: "Stories" },
+  { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> },
   { href: `/about`, label: "About Us" },
 ];
 
-const allNavItemsForMobile: NavItemType[] = [
-  ...navItems,
-  { href: `/quotes/saved`, label: "Saved Quotes", icon: <Bookmark className="mr-2 h-4 w-4" /> }
-];
 
 export default function Header() {
   const router = useRouter();
@@ -33,13 +31,14 @@ export default function Header() {
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('userName');
+      localStorage.removeItem('userNameAatmAI'); // Corrected key
+      localStorage.removeItem('aatmAI-chat-history');
       toast({
         title: "See Ya!",
         description: "You've been logged out. Enter a new name to start fresh.",
       });
       setIsMobileMenuOpen(false);
-      window.location.href = '/'; 
+      window.location.href = '/';
     }
   };
 
@@ -57,9 +56,9 @@ export default function Header() {
         <div className="hidden md:flex md:flex-grow">
          <MainNav navItems={navItems} />
         </div>
-        
+
         <div className="flex flex-1 items-center justify-end space-x-1 md:hidden">
-          <ThemeToggle />
+           <ThemeToggle />
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -80,7 +79,7 @@ export default function Header() {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-1 p-4">
-                {allNavItemsForMobile.map((item) => (
+                {navItems.map((item) => ( // Using navItems directly as it includes Saved Quotes with icon
                   <SheetClose asChild key={item.href}>
                      <Link
                        href={item.href}
@@ -108,7 +107,7 @@ export default function Header() {
             </SheetContent>
           </Sheet>
         </div>
-        
+
         <div className="hidden md:flex items-center justify-end space-x-1 sm:space-x-2 ml-auto">
           <ThemeToggle />
           <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 sm:px-3">
