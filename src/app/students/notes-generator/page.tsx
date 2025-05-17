@@ -17,14 +17,15 @@ const initialState: NotesGeneratorFormState = {
   message: '',
   isError: false,
   detailLevel: 'concise',
+  topicSubmitted: '', // Initialize topicSubmitted
 };
 
-function SubmitButton({ detailLevel }: { detailLevel: 'concise' | 'detailed' }) {
+function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full sm:w-auto mt-4" disabled={pending}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-      {detailLevel === 'concise' ? 'Generate Concise Notes' : 'Generate Detailed Explanation'}
+      Generate Notes
     </Button>
   );
 }
@@ -79,7 +80,7 @@ function NotesFormFieldsAndStatus({
       {pending && (
         <Alert className="mt-6 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" />
-          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({state.detailLevel || currentDetailLevel})...</AlertTitle>
+          <AlertTitle className="text-blue-700 dark:text-blue-300">AatmAI is generating notes ({currentDetailLevel})...</AlertTitle>
           <AlertDescription className="text-blue-600 dark:text-blue-400">
             Please wait a moment. This can take a few seconds.
           </AlertDescription>
@@ -152,48 +153,52 @@ export default function StudentNotesGeneratorPage() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   
-  // Use state for topic and detailLevel to control form inputs
-  const [currentTopic, setCurrentTopic] = useState<string>(initialState.inputSubmitted || '');
+  const [currentTopic, setCurrentTopic] = useState<string>(initialState.topicSubmitted || '');
   const [currentDetailLevel, setCurrentDetailLevel] = useState<'concise' | 'detailed'>(initialState.detailLevel || 'concise');
 
   useEffect(() => {
-    // Sync local state from server action state on completion
-    if (state.topicSubmitted !== undefined && state.topicSubmitted !== currentTopic) {
-      setCurrentTopic(state.topicSubmitted);
+    // This effect reacts to the completion of a server action by inspecting `state`.
+    if (state.message) { // A message indicates the action has completed
+      if (!state.isError && state.notes) {
+        toast({
+          title: `Notes Generated! (${state.detailLevel})`,
+          description: state.message,
+        });
+        // Sync local state to reflect what was actually processed and returned by the server
+        if (state.topicSubmitted !== undefined) {
+            setCurrentTopic(state.topicSubmitted);
+        }
+        if (state.detailLevel) {
+            setCurrentDetailLevel(state.detailLevel);
+        }
+      } else if (state.isError) {
+        toast({
+          title: "Error",
+          description: state.message,
+          variant: "destructive",
+        });
+        // Sync local state even on error, to reflect what the server action attempted
+        if (state.topicSubmitted !== undefined) {
+            setCurrentTopic(state.topicSubmitted);
+        }
+        if (state.detailLevel) {
+            setCurrentDetailLevel(state.detailLevel);
+        }
+      }
     }
-    if (state.detailLevel && state.detailLevel !== currentDetailLevel) {
-      setCurrentDetailLevel(state.detailLevel);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.topicSubmitted, state.detailLevel]);
+  }, [state, toast]); // Depend only on `state` (from useActionState) and `toast`
 
 
-  useEffect(() => {
-    if (state.message && !state.isError && state.notes) {
-      toast({
-        title: `Notes Generated! (${state.detailLevel})`,
-        description: state.message,
-      });
-    } else if (state.message && state.isError) {
-      toast({
-        title: "Error",
-        description: state.message,
-        variant: "destructive",
-      });
-    }
-  }, [state.message, state.isError, state.notes, state.detailLevel, toast]);
-  
   const handleExplainMore = () => {
     if (currentTopic) {
-      setCurrentDetailLevel('detailed');
-      // Ensure state update is reflected in the hidden input before submitting
+      setCurrentDetailLevel('detailed'); // Set intent for next submission
+      // Using setTimeout to allow React to process state update and re-render
+      // the hidden input field before the form is submitted.
       setTimeout(() => {
         if (formRef.current) {
-          // Manually trigger the form submission associated with the formAction
-          const formData = new FormData(formRef.current);
-          formData.set('topic', currentTopic); // ensure current topic is sent
-          formData.set('detailLevel', 'detailed'); // explicitly set detail level for this action
-          formAction(formData);
+          // The form's hidden input for 'detailLevel' should now have 'detailed'
+          // due to the state update and re-render.
+          formRef.current.requestSubmit(); 
         }
       }, 0);
     } else {
@@ -220,7 +225,7 @@ export default function StudentNotesGeneratorPage() {
         <CardContent>
           <form
             ref={formRef}
-            action={formAction}
+            action={formAction} 
             className="space-y-6"
           >
             <NotesFormFieldsAndStatus
@@ -230,9 +235,9 @@ export default function StudentNotesGeneratorPage() {
               currentDetailLevel={currentDetailLevel}
             />
             
-            {!useFormStatus().pending && state.notes && state.detailLevel === 'concise' && (
+            {!useFormStatus().pending && state.notes && currentDetailLevel === 'concise' && (
                  <Button
-                    type="button"
+                    type="button" 
                     variant="outline"
                     size="sm"
                     onClick={handleExplainMore}
@@ -242,7 +247,7 @@ export default function StudentNotesGeneratorPage() {
                     Explain More
                 </Button>
             )}
-            <SubmitButton detailLevel={currentDetailLevel} />
+            <SubmitButton />
           </form>
         </CardContent>
       </Card>
