@@ -19,69 +19,73 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// IMPORTANT:
+// For each tool in the aiToolsData array below, you MUST replace
+// the placeholder href: '#' with the actual URL of the AI tool.
+// If href remains '#', the links will not navigate to an external site.
 const aiToolsData = [
   {
     name: 'AI Presentation Maker',
     description: 'Generate engaging presentations from text prompts or documents. Helps with structure, design, and content.',
     icon: <Presentation className="w-10 h-10 text-purple-500" />,
     color: "purple",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Image Generator',
     description: 'Create unique images from text descriptions for projects, presentations, or visual aids.',
     icon: <ImageIcon className="w-10 h-10 text-pink-500" />,
     color: "pink",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Roadmap & Mindmap Creator',
     description: 'Visualize complex ideas, plan projects, and create study roadmaps with AI assistance.',
     icon: <GitFork className="w-10 h-10 text-orange-500" />,
     color: "orange",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Writing Assistant',
     description: 'Improve grammar, clarity, and style in essays, reports, and emails. Helps with paraphrasing and summarization.',
     icon: <FileText className="w-10 h-10 text-blue-500" />,
     color: "blue",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Research Assistant',
     description: 'Find relevant papers, extract key information, and get answers from research documents quickly.',
     icon: <Search className="w-10 h-10 text-green-500" />,
     color: "green",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Coding Assistant',
     description: 'Get help with code generation, debugging, and understanding programming concepts.',
     icon: <Code className="w-10 h-10 text-gray-500" />,
     color: "gray",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Video Editor/Creator',
     description: 'Automate video editing tasks, generate videos from text or articles, or create short video summaries.',
     icon: <Video className="w-10 h-10 text-red-500" />,
     color: "red",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Study Aid & Flashcard Generator',
     description: 'Create flashcards, quizzes, and personalized study materials from your notes or textbooks.',
     icon: <Sparkles className="w-10 h-10 text-yellow-500" />,
     color: "yellow",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
   {
     name: 'AI Learning Path Generator',
     description: 'Get personalized learning paths for new skills or subjects, with resource recommendations.',
     icon: <GraduationCap className="w-10 h-10 text-teal-500" />,
     color: "teal",
-    href: '#' // Replace with actual link
+    href: '#' // REPLACE THIS with the actual URL
   },
 ];
 
@@ -109,8 +113,7 @@ export default function UsefulAIToolsPage() {
               >
                 <CardHeader>
                   <div className="flex items-start gap-4">
-                    {/* Make the icon a clickable link */}
-                    <Link href={tool.href} target="_blank" rel="noopener noreferrer" passHref
+                    <Link href={tool.href} target="_blank" rel="noopener noreferrer"
                           className={`p-2 rounded-full bg-${tool.color}-100 dark:bg-${tool.color}-900/30 hover:bg-${tool.color}-200 dark:hover:bg-${tool.color}-800/50 transition-colors`}
                           aria-label={`Visit ${tool.name}`}>
                         {tool.icon}
