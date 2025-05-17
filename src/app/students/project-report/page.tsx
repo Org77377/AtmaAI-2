@@ -13,25 +13,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { handleGenerateProjectReport, type ProjectReportFormState } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, FileText, Sparkles, Copy, Info } from 'lucide-react';
+import { Loader2, AlertTriangle, FileText, Sparkles, Copy, Info, RotateCcw } from 'lucide-react';
 import type { GenerateProjectReportInput } from '@/ai/flows/generate-project-report-flow';
 
-const initialState: ProjectReportFormState = {
+const initialFormInputState: Partial<GenerateProjectReportInput> = {
+  projectTopic: '',
+  techStackDetails: '',
+  reportType: 'simple',
+};
+
+const initialActionState: ProjectReportFormState = {
   message: '',
   isError: false,
   report: undefined,
   inputSubmitted: undefined,
 };
 
-function SubmitButtonContent() { // Renamed from SubmitButton to avoid conflict, just for content
-  const { pending } = useFormStatus();
-  return (
-    <>
-      <Sparkles className="mr-2 h-4 w-4" />
-      Generate Project Report
-    </>
-  );
-}
 
 function ProjectReportFormFieldsAndStatus({
   state,
@@ -184,18 +181,29 @@ function ProjectReportFormFieldsAndStatus({
   );
 }
 
-function FormSubmitControls() {
+function FormSubmitControls({ showStartNewButton, onStartNewReport }: { showStartNewButton: boolean; onStartNewReport: () => void; }) {
   const { pending } = useFormStatus();
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center space-y-3 mt-6">
       <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
         <Sparkles className="mr-2 h-4 w-4" />
         Generate Project Report
       </Button>
       {pending && (
-        <p className="text-sm text-muted-foreground mt-3 text-center">
+        <p className="text-sm text-muted-foreground text-center">
           Generating... please wait while your report is being generated.
         </p>
+      )}
+       {showStartNewButton && !pending && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full sm:w-auto"
+          onClick={onStartNewReport}
+        >
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Start New Report
+        </Button>
       )}
     </div>
   );
@@ -203,12 +211,12 @@ function FormSubmitControls() {
 
 
 export default function ProjectReportGeneratorPage() {
-  const [state, formAction] = useActionState(handleGenerateProjectReport, initialState);
+  const [formKey, setFormKey] = useState(0); // Key for resetting the form
+  const [state, formAction] = useActionState(handleGenerateProjectReport, initialActionState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [currentInput, setCurrentInput] = useState<Partial<GenerateProjectReportInput>>(
-    initialState.inputSubmitted || { reportType: 'simple' } // Default reportType
-  );
+
+  const [currentInput, setCurrentInput] = useState<Partial<GenerateProjectReportInput>>(initialFormInputState);
 
   useEffect(() => {
     if (state.message) {
@@ -225,6 +233,7 @@ export default function ProjectReportGeneratorPage() {
         });
       }
     }
+    // Sync currentInput with submitted data if it exists, to repopulate form on error
     if (state.inputSubmitted) {
       setCurrentInput(state.inputSubmitted);
     }
@@ -235,6 +244,14 @@ export default function ProjectReportGeneratorPage() {
     value: string | 'simple' | 'detailed'
   ) => {
     setCurrentInput(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleStartNewReport = () => {
+    setCurrentInput(initialFormInputState);
+    if (formRef.current) {
+      formRef.current.reset(); // Visually reset form fields
+    }
+    setFormKey(prevKey => prevKey + 1); // Change key to remount form and reset useActionState
   };
   
   return (
@@ -250,13 +267,16 @@ export default function ProjectReportGeneratorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={formAction} className="space-y-8">
+          <form ref={formRef} action={formAction} className="space-y-8" key={formKey}>
             <ProjectReportFormFieldsAndStatus
               state={state}
               currentInput={currentInput}
               onInputChange={handleInputChange}
             />
-            <FormSubmitControls />
+            <FormSubmitControls 
+              showStartNewButton={!!state.report?.reportContent && !state.isError}
+              onStartNewReport={handleStartNewReport}
+            />
           </form>
         </CardContent>
       </Card>
