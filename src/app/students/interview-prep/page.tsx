@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -20,13 +21,36 @@ type InterviewMessage = {
 };
 
 const interviewDomains = [
+  { value: 'General Behavioral Interview', label: 'General Behavioral Interview' },
   { value: 'Software Engineering - Frontend', label: 'Software Engineering - Frontend' },
   { value: 'Software Engineering - Backend', label: 'Software Engineering - Backend' },
-  { value: 'Data Science', label: 'Data Science' },
+  { value: 'Software Engineering - Full Stack', label: 'Software Engineering - Full Stack' },
+  { value: 'Data Science & Analytics', label: 'Data Science & Analytics' },
+  { value: 'Machine Learning Engineer', label: 'Machine Learning Engineer' },
   { value: 'Product Management', label: 'Product Management' },
+  { value: 'UX/UI Design', label: 'UX/UI Design' },
+  { value: 'Graphic Design', label: 'Graphic Design' },
   { value: 'Digital Marketing', label: 'Digital Marketing' },
-  { value: 'General Behavioral Interview', label: 'General Behavioral Interview' },
+  { value: 'Content Writing & Journalism', label: 'Content Writing & Journalism' },
+  { value: 'Business Analyst', label: 'Business Analyst' },
+  { value: 'Finance & Accounting', label: 'Finance & Accounting' },
+  { value: 'Marketing & Sales', label: 'Marketing & Sales' },
+  { value: 'Human Resources', label: 'Human Resources' },
+  { value: 'Supply Chain Management', label: 'Supply Chain Management' },
+  { value: 'Mechanical Engineering', label: 'Mechanical Engineering' },
+  { value: 'Civil Engineering', label: 'Civil Engineering' },
+  { value: 'Electrical Engineering', label: 'Electrical Engineering' },
+  { value: 'Chemical Engineering', label: 'Chemical Engineering' },
+  { value: 'Biotechnology & Research', label: 'Biotechnology & Research' },
+  { value: 'Healthcare Administration', label: 'Healthcare Administration' },
+  { value: 'Pharmacy', label: 'Pharmacy' },
+  { value: 'Teaching & Academia', label: 'Teaching & Academia' },
+  { value: 'Legal & Paralegal Roles', label: 'Legal & Paralegal Roles' },
+  { value: 'Customer Support & Success', label: 'Customer Support & Success'},
+  { value: 'Project Management (General)', label: 'Project Management (General)'},
+  { value: 'Consulting (Entry Level)', label: 'Consulting (Entry Level)'},
 ];
+
 
 export default function InterviewPrepPage() {
   const [selectedDomain, setSelectedDomain] = useState<string>('');
