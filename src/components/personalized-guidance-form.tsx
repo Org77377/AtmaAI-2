@@ -1,4 +1,4 @@
-// src/components/personalized-guidance-form.tsx
+
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -10,9 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { handleGenerateGuidance, type GuidanceFormState, type ChatMessage } from '@/app/guidance/actions';
-import { generateSpeechAction } from '@/app/actions/generate-speech'; // New import
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Info, Sparkles, Send, User, Volume2, StopCircle, Play } from 'lucide-react';
+import { Loader2, AlertTriangle, Info, Sparkles, Send, User, Volume2, StopCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +37,7 @@ function FormFieldsAndStatus({
   currentIssue: string;
   setCurrentIssue: (issue: string) => void;
 }) {
-  const { pending } = require('react-dom').useFormStatus(); // Corrected import
+  const { pending } = require('react-dom').useFormStatus();
 
   return (
     <>
@@ -64,7 +63,7 @@ function FormFieldsAndStatus({
               name="mood"
               placeholder="How are you feeling right now? (e.g., stressed, hopeful, a bit lost)"
               className="mt-2"
-              required={conversationHistoryLength === 0}
+              required={conversationHistoryLength === 0} // Only required for first message
               disabled={pending}
             />
             {fields?.mood && <p className="text-sm text-destructive mt-1">{fields.mood}</p>}
@@ -112,7 +111,7 @@ function FormFieldsAndStatus({
 }
 
 function SubmitButton() {
-  const { pending } = require('react-dom').useFormStatus(); // Corrected import
+  const { pending } = require('react-dom').useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
@@ -130,37 +129,14 @@ export default function PersonalizedGuidanceForm() {
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
   const [currentIssue, setCurrentIssue] = useState('');
 
-  // State for PlayHT audio
-  const [audioStates, setAudioStates] = useState<Record<string, { isLoading: boolean; audioUrl?: string; isPlaying: boolean }>>({});
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [activeAudioMessageKey, setActiveAudioMessageKey] = useState<string | null>(null);
+  // State for Browser Speech Synthesis
+  const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [speakingMessageKey, setSpeakingMessageKey] = useState<string | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
 
   useEffect(() => {
-    // Initialize audio element
-    if (typeof window !== 'undefined') {
-      audioRef.current = new Audio();
-      audioRef.current.onended = () => {
-        if (activeAudioMessageKey) {
-          setAudioStates(prev => ({
-            ...prev,
-            [activeAudioMessageKey]: { ...prev[activeAudioMessageKey], isPlaying: false }
-          }));
-          setActiveAudioMessageKey(null);
-        }
-      };
-      audioRef.current.onerror = () => {
-        toast({ title: "Audio Error", description: "Could not play audio.", variant: "destructive" });
-        if (activeAudioMessageKey) {
-           setAudioStates(prev => ({
-            ...prev,
-            [activeAudioMessageKey]: { ...prev[activeAudioMessageKey], isPlaying: false, isLoading: false }
-          }));
-          setActiveAudioMessageKey(null);
-        }
-      };
-    }
-
     const storedHistory = localStorage.getItem('aatmAI-chat-history');
     if (storedHistory) {
       try {
@@ -175,13 +151,33 @@ export default function PersonalizedGuidanceForm() {
         localStorage.removeItem('aatmAI-chat-history');
       }
     }
-    
-    return () => { // Cleanup
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.src = ''; // Release audio resource
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      setSpeechSynthesisSupported(true);
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        setAvailableVoices(voices);
+      };
+      loadVoices(); // Initial load
+      // For some browsers, voices are loaded asynchronously.
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+
+      return () => { // Cleanup
+        if (window.speechSynthesis) { 
+          window.speechSynthesis.cancel();
+           if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = null;
+          }
         }
-    };
+         if (currentUtteranceRef.current) {
+          currentUtteranceRef.current.onend = null;
+          currentUtteranceRef.current.onerror = null;
+          currentUtteranceRef.current = null;
+        }
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -212,75 +208,82 @@ export default function PersonalizedGuidanceForm() {
     }
   }, [conversationHistory]);
 
-  const handlePlayHTSpeech = async (text: string, messageKey: string) => {
-    if (audioRef.current) {
-        audioRef.current.pause(); // Stop any currently playing audio
+  const handleSpeak = (text: string, messageKey: string) => {
+    if (!speechSynthesisSupported) {
+      toast({ title: "Speech Not Supported", description: "Your browser does not support speech synthesis.", variant: "destructive" });
+      return;
     }
 
-    // If this message's audio is already playing, stop it.
-    if (activeAudioMessageKey === messageKey && audioStates[messageKey]?.isPlaying) {
-      if (audioRef.current) audioRef.current.pause();
-      setAudioStates(prev => ({ ...prev, [messageKey]: { ...prev[messageKey], isPlaying: false } }));
-      setActiveAudioMessageKey(null);
+    if (speakingMessageKey === messageKey) { 
+      window.speechSynthesis.cancel();
+      if(currentUtteranceRef.current) {
+          currentUtteranceRef.current.onend = null; 
+          currentUtteranceRef.current.onerror = null;
+      }
+      setSpeakingMessageKey(null);
+      currentUtteranceRef.current = null;
       return;
     }
     
-    // If audio for this message is loaded and paused, play it
-    if (audioStates[messageKey]?.audioUrl && !audioStates[messageKey]?.isPlaying) {
-        if (audioRef.current) {
-            audioRef.current.src = audioStates[messageKey].audioUrl!;
-            audioRef.current.play().catch(e => console.error("Error playing audio:", e));
-            setAudioStates(prev => ({ ...prev, [messageKey]: { ...prev[messageKey], isPlaying: true } }));
-            setActiveAudioMessageKey(messageKey);
+    window.speechSynthesis.cancel(); 
+     if(currentUtteranceRef.current) { 
+        currentUtteranceRef.current.onend = null;
+        currentUtteranceRef.current.onerror = null;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    currentUtteranceRef.current = utterance; 
+
+    let selectedVoice: SpeechSynthesisVoice | null = null;
+    if (availableVoices.length > 0) {
+        const enINFemaleVoices = availableVoices.filter(
+            (voice) => voice.lang === 'en-IN' && /female/i.test(voice.name || '') // Add checks for voice.name
+        );
+        if (enINFemaleVoices.length > 0) {
+            selectedVoice = enINFemaleVoices.find(v => v.localService) || enINFemaleVoices[0];
+        } else {
+            const femaleVoices = availableVoices.filter(
+                (voice) => voice.lang.startsWith('en') && /female/i.test(voice.name || '')
+            );
+            if (femaleVoices.length > 0) {
+                selectedVoice = femaleVoices.find(v => v.localService && /Google|Microsoft|Natural/i.test(v.name || '')) ||
+                                femaleVoices.find(v => v.localService) ||
+                                femaleVoices.find(v => /Google|Microsoft|Natural/i.test(v.name || '')) ||
+                                femaleVoices[0];
+            } else {
+                 selectedVoice = availableVoices.find(v => v.lang.startsWith('en') && v.localService) ||
+                                 availableVoices.find(v => v.lang.startsWith('en') && v.default) ||
+                                 availableVoices.find(v => v.lang.startsWith('en'));
+            }
         }
-        return;
     }
-
-    // If audio not loaded yet, fetch it
-    setAudioStates(prev => ({ ...prev, [messageKey]: { isLoading: true, isPlaying: false } }));
-    setActiveAudioMessageKey(messageKey); // Tentatively set, might reset on error
-
-    const result = await generateSpeechAction({ text });
-
-    if (result.error || !result.audioUrl) {
-      toast({
-        title: "Speech Generation Failed",
-        description: result.error || "Could not generate audio.",
-        variant: "destructive",
-      });
-      setAudioStates(prev => ({ ...prev, [messageKey]: { isLoading: false, isPlaying: false } }));
-      if(activeAudioMessageKey === messageKey) setActiveAudioMessageKey(null);
-      return;
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
-
-    setAudioStates(prev => ({
-      ...prev,
-      [messageKey]: { isLoading: false, audioUrl: result.audioUrl, isPlaying: true }
-    }));
     
-    if (audioRef.current) {
-      audioRef.current.src = result.audioUrl;
-      audioRef.current.play().catch(e => {
-        console.error("Error playing generated audio:", e);
-        toast({ title: "Audio Error", description: "Could not play generated audio.", variant: "destructive" });
-        setAudioStates(prev => ({ ...prev, [messageKey]: { ...prev[messageKey], isPlaying: false } }));
-        if(activeAudioMessageKey === messageKey) setActiveAudioMessageKey(null);
-      });
-    }
-  };
-  
-  const handleStopSpeech = () => {
-    if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0; // Reset to beginning
-    }
-    if (activeAudioMessageKey) {
-         setAudioStates(prev => ({
-            ...prev,
-            [activeAudioMessageKey]: { ...prev[activeAudioMessageKey], isPlaying: false }
-          }));
-        setActiveAudioMessageKey(null);
-    }
+    utterance.onstart = () => {
+      setSpeakingMessageKey(messageKey);
+    };
+
+    utterance.onend = () => {
+      setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
+      if (currentUtteranceRef.current === utterance) {
+        currentUtteranceRef.current = null;
+      }
+    };
+
+    utterance.onerror = (event: SpeechSynthesisErrorEvent) => { 
+      const errorReason = (event as any).error || event.type;
+      if (errorReason !== 'interrupted' && errorReason !== 'canceled') {
+         console.error("Speech synthesis error event:", event, "Error details:", errorReason);
+         toast({ title: "Speech Error", description: "Could not play the audio.", variant: "destructive" });
+      }
+      setSpeakingMessageKey(currentKey => (currentKey === messageKey ? null : currentKey));
+       if (currentUtteranceRef.current === utterance) {
+        currentUtteranceRef.current = null;
+      }
+    };
+    window.speechSynthesis.speak(utterance);
   };
 
 
@@ -298,36 +301,23 @@ export default function PersonalizedGuidanceForm() {
 
       {conversationHistory.length > 0 && (
         <Card className="bg-background/50 border shadow-md">
-          <CardHeader className="flex flex-row justify-between items-center">
+          <CardHeader>
             <CardTitle className="text-lg text-primary">Our Conversation</CardTitle>
-            {activeAudioMessageKey && audioStates[activeAudioMessageKey]?.isPlaying && (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleStopSpeech}
-                    className="h-8 w-8 p-1 text-destructive hover:bg-destructive/10"
-                    aria-label="Stop all speech"
-                >
-                    <StopCircle className="h-5 w-5" />
-                </Button>
-            )}
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[400px] w-full pr-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {conversationHistory.map((msg, index) => {
                   const messageKey = `msg-${index}`;
-                  const currentAudioState = audioStates[messageKey] || { isLoading: false, isPlaying: false };
-                  
                   return (
                     <div
                       key={messageKey}
                       className={cn(
-                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full", 
+                        "flex flex-col p-3 rounded-lg shadow-sm text-sm w-full break-words", 
                         msg.role === 'user' ? "bg-primary/10" : "bg-muted/60" 
                       )}
                     >
-                      <div className="flex items-center gap-2 w-full break-words"> 
+                      <div className="flex items-center gap-2 w-full"> 
                           {msg.role === 'model' && <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />}
                           <p className={cn(
                               "whitespace-pre-wrap flex-1",
@@ -338,21 +328,21 @@ export default function PersonalizedGuidanceForm() {
                           </p>
                           {msg.role === 'user' && <User className="h-5 w-5 text-primary flex-shrink-0" />}
                       </div>
-                      {msg.role === 'model' && (
+                      {msg.role === 'model' && speechSynthesisSupported && (
                           <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handlePlayHTSpeech(msg.content, messageKey)}
-                              className="h-6 w-6 p-1 self-start mt-1"
-                              aria-label={currentAudioState.isPlaying ? "Pause speech" : (currentAudioState.audioUrl ? "Play speech" : "Generate and play speech")}
-                              disabled={currentAudioState.isLoading}
+                              onClick={() => handleSpeak(msg.content, messageKey)}
+                              className={cn(
+                                "h-6 w-6 p-1 self-start mt-1",
+                                speakingMessageKey === messageKey ? "text-destructive hover:bg-destructive/10" : "text-primary/80 hover:text-primary"
+                              )}
+                              aria-label={speakingMessageKey === messageKey ? "Stop speech" : "Play speech"}
                           >
-                              {currentAudioState.isLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : currentAudioState.isPlaying ? (
-                                <StopCircle className="h-4 w-4 text-destructive" />
+                              {speakingMessageKey === messageKey ? (
+                                <StopCircle className="h-4 w-4" />
                               ) : (
-                                <Volume2 className="h-4 w-4 text-primary/80 hover:text-primary" />
+                                <Volume2 className="h-4 w-4" />
                               )}
                           </Button>
                       )}
